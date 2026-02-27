@@ -35,7 +35,7 @@
 
 2. Затем найденные источники сохраняет в файл sources.txt (прикреплён к репо), чтобы не повторять поиск уже найденных источников.
 
-https://raw.githubusercontent.com/RKPchannel/RKP_bypass_configs/refs/heads/main/sources.txt
+https://raw.githubusercontent.com/RKPchannel/RKP_bypass_configs/refs/heads/main/configs/url_work.txt
 
 3. Из сохранённых источников происходит скачивание конфигов.
 
