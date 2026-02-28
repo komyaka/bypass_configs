@@ -35,8 +35,6 @@
 
 2. Затем найденные источники сохраняет в файл sources.txt (прикреплён к репо), чтобы не повторять поиск уже найденных источников.
 
-https://raw.githubusercontent.com/RKPchannel/RKP_bypass_configs/refs/heads/main/configs/url_work.txt
-
 3. Из сохранённых источников происходит скачивание конфигов.
 
 # [Чистка]
@@ -77,13 +75,10 @@ https://raw.githubusercontent.com/RKPchannel/RKP_bypass_configs/refs/heads/main/
 ---
 ## 🔗 Ссылки для добавления конфигураций в ваш VPN-Клиент
 
-Обычная ссылка, в которой самые обычные конфигурации:
-https://raw.githubusercontent.com/RKPchannel/RKP_bypass_configs/refs/heads/main/configs
-
 Ссылка с настройками автообновления:
-Будет дообавлена позже
+https://raw.githubusercontent.com/RKPchannel/RKP_bypass_configs/refs/heads/main/configs/url_work.txt
 
-Ссылка base64 с автообновлением:
+Ссылка sing-box с автообновлением:
 Будет добавлена позже
 
 # ✍️ Справка использования конфигураций:
