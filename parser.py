@@ -15,6 +15,8 @@ import urllib.parse
 import ssl
 import sys
 import io
+import base64
+import platform
 
 # ========= КОДИРОВКА UTF-8 ДЛЯ WINDOWS =========
 if sys.stdout.encoding.lower() != 'utf-8':
@@ -89,6 +91,13 @@ cycle_counter = 0
 
 # ========= РЕГУЛЯРКИ =========
 VLESS_REGEX = re.compile(r"vless://[^\s]+", re.IGNORECASE)
+PROTOCOL_REGEXES = {
+    'vless':     re.compile(r"vless://[^\s]+", re.IGNORECASE),
+    'vmess':     re.compile(r"vmess://[^\s]+", re.IGNORECASE),
+    'trojan':    re.compile(r"trojan://[^\s]+", re.IGNORECASE),
+    'ss':        re.compile(r"(?<![a-zA-Z0-9])ss://[^\s]+", re.IGNORECASE),
+    'hysteria2': re.compile(r"(?:hysteria2|hy2)://[^\s]+", re.IGNORECASE),
+}
 UUID_REGEX = re.compile(
     r"[0-9a-fA-F]{8}-"
     r"[0-9a-fA-F]{4}-"
@@ -949,6 +958,82 @@ def validate_vless(url: str) -> bool:
     return True
 
 
+def validate_vmess(url: str) -> bool:
+    if not url.lower().startswith("vmess://"):
+        return False
+    try:
+        b64 = url[8:].split('#')[0].strip()
+        padding = 4 - len(b64) % 4
+        if padding != 4:
+            b64 += '=' * padding
+        try:
+            decoded = base64.b64decode(b64).decode('utf-8', errors='ignore')
+        except Exception:
+            decoded = base64.urlsafe_b64decode(b64).decode('utf-8', errors='ignore')
+        data = json.loads(decoded)
+        return bool(data.get('add') and data.get('port') and data.get('id'))
+    except Exception:
+        return False
+
+
+def validate_trojan(url: str) -> bool:
+    if not url.lower().startswith("trojan://"):
+        return False
+    content = url[9:].split('#')[0]
+    if '@' not in content:
+        return False
+    after_at = content.split('@', 1)[1].split('?')[0]
+    return ':' in after_at
+
+
+def validate_ss(url: str) -> bool:
+    if not url.lower().startswith("ss://"):
+        return False
+    content = url[5:].split('#')[0]
+    return len(content) > 5
+
+
+def validate_hysteria2(url: str) -> bool:
+    url_lower = url.lower()
+    if not (url_lower.startswith("hysteria2://") or url_lower.startswith("hy2://")):
+        return False
+    content = url[12:] if url_lower.startswith("hysteria2://") else url[6:]
+    return len(content) > 3
+
+
+def validate_config(url: str) -> bool:
+    """Validates any supported protocol config URL"""
+    if not url or not url.strip():
+        return False
+    proto = get_protocol_type(url)
+    if proto == 'vless':
+        return validate_vless(url)
+    elif proto == 'vmess':
+        return validate_vmess(url)
+    elif proto == 'trojan':
+        return validate_trojan(url)
+    elif proto == 'ss':
+        return validate_ss(url)
+    elif proto == 'hysteria2':
+        return validate_hysteria2(url)
+    return False
+
+
+def get_protocol_type(url: str) -> str:
+    """Returns the base protocol type: vless, vmess, trojan, ss, hysteria2, or unknown"""
+    url_lower = url.lower()
+    if url_lower.startswith('vless://'):
+        return 'vless'
+    elif url_lower.startswith('vmess://'):
+        return 'vmess'
+    elif url_lower.startswith('trojan://'):
+        return 'trojan'
+    elif url_lower.startswith('ss://'):
+        return 'ss'
+    elif url_lower.startswith('hysteria2://') or url_lower.startswith('hy2://'):
+        return 'hysteria2'
+    return 'unknown'
+
 # ========= WHITELIST =========
 def load_whitelist_domains():
     domains = set()
@@ -1120,6 +1205,147 @@ def extract_all_possible_domains(vless_url: str) -> list:
         return []
 
 
+def extract_vmess_domains(url: str) -> list:
+    """Extracts domains from VMess URL (base64-encoded JSON)"""
+    domains = set()
+    try:
+        if not url.lower().startswith('vmess://'):
+            return []
+        b64 = url[8:].split('#')[0].strip()
+        padding = 4 - len(b64) % 4
+        if padding != 4:
+            b64 += '=' * padding
+        try:
+            decoded = base64.b64decode(b64).decode('utf-8', errors='ignore')
+        except Exception:
+            decoded = base64.urlsafe_b64decode(b64).decode('utf-8', errors='ignore')
+        data = json.loads(decoded)
+        for field in ('sni', 'host', 'add'):
+            val = str(data.get(field, '') or '').lower()
+            if val and '.' in val:
+                domains.add(val)
+    except Exception:
+        pass
+    return list(domains)
+
+
+def extract_trojan_domains(url: str) -> list:
+    """Extracts domains from Trojan URL"""
+    domains = set()
+    try:
+        if not url.lower().startswith('trojan://'):
+            return []
+        content = url[9:].split('#')[0]
+        if '@' not in content:
+            return []
+        after_at = content.split('@', 1)[1]
+        if '?' in after_at:
+            host_part, query = after_at.split('?', 1)
+        else:
+            host_part = after_at
+            query = ''
+        host = host_part.split(':', 1)[0] if ':' in host_part else host_part
+        if host and '.' in host:
+            domains.add(host.lower())
+        if query:
+            for param in query.split('&'):
+                if '=' in param:
+                    k, v = param.split('=', 1)
+                    try:
+                        v = urllib.parse.unquote(v)
+                    except Exception:
+                        pass
+                    if k.lower() in ('sni', 'peer') and '.' in v:
+                        domains.add(v.lower())
+    except Exception:
+        pass
+    return list(domains)
+
+
+def extract_ss_domains(url: str) -> list:
+    """Extracts domains from Shadowsocks URL"""
+    domains = set()
+    try:
+        if not url.lower().startswith('ss://'):
+            return []
+        content = url[5:].split('#')[0]
+        if '@' in content:
+            after_at = content.split('@', 1)[1]
+            host_part = after_at.split('?', 1)[0]
+            host = host_part.rsplit(':', 1)[0] if ':' in host_part else host_part
+            if host and '.' in host:
+                domains.add(host.lower())
+        else:
+            b64 = content
+            padding = 4 - len(b64) % 4
+            if padding != 4:
+                b64 += '=' * padding
+            try:
+                decoded = base64.b64decode(b64).decode('utf-8', errors='ignore')
+                if '@' in decoded:
+                    after_at = decoded.split('@', 1)[1]
+                    host = after_at.rsplit(':', 1)[0] if ':' in after_at else after_at
+                    if host and '.' in host:
+                        domains.add(host.lower())
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return list(domains)
+
+
+def extract_hysteria2_domains(url: str) -> list:
+    """Extracts domains from Hysteria2 URL"""
+    domains = set()
+    try:
+        url_lower = url.lower()
+        if url_lower.startswith('hysteria2://'):
+            content = url[12:]
+        elif url_lower.startswith('hy2://'):
+            content = url[6:]
+        else:
+            return []
+        content = content.split('#')[0]
+        after_at = content.split('@', 1)[1] if '@' in content else content
+        if '?' in after_at:
+            host_part, query = after_at.split('?', 1)
+        else:
+            host_part = after_at
+            query = ''
+        host = host_part.rsplit(':', 1)[0] if ':' in host_part else host_part
+        if host and '.' in host:
+            domains.add(host.lower())
+        if query:
+            for param in query.split('&'):
+                if '=' in param:
+                    k, v = param.split('=', 1)
+                    try:
+                        v = urllib.parse.unquote(v)
+                    except Exception:
+                        pass
+                    if k.lower() == 'sni' and '.' in v:
+                        domains.add(v.lower())
+    except Exception:
+        pass
+    return list(domains)
+
+
+def extract_all_possible_domains_generic(url: str) -> list:
+    """Generic domain extractor that dispatches to the right protocol handler"""
+    proto = get_protocol_type(url)
+    if proto == 'vless':
+        return extract_all_possible_domains(url)
+    elif proto == 'vmess':
+        return extract_vmess_domains(url)
+    elif proto == 'trojan':
+        return extract_trojan_domains(url)
+    elif proto == 'ss':
+        return extract_ss_domains(url)
+    elif proto == 'hysteria2':
+        return extract_hysteria2_domains(url)
+    return []
+
+
 def get_human_name(domain: str) -> str:
     """Определяет человеко-читаемое название по домену из словаря DOMAIN_NAMES"""
     if not domain:
@@ -1137,12 +1363,28 @@ def get_human_name(domain: str) -> str:
     return "Неизвестно"
 
 
+def detect_protocol_label(url: str) -> str:
+    """Returns a human-readable protocol label for config renaming (e.g. WS, VMess, HY2)"""
+    proto = get_protocol_type(url)
+    if proto == 'vless':
+        return detect_protocol(url)
+    elif proto == 'vmess':
+        return 'VMess'
+    elif proto == 'trojan':
+        return 'Trojan'
+    elif proto == 'ss':
+        return 'SS'
+    elif proto == 'hysteria2':
+        return 'HY2'
+    return 'Unknown'
+
+
 def filter_by_sni(vless_url: str, whitelist_domains: set, whitelist_suffixes: list) -> bool:
     """
     Фильтрация по SNI с использованием whitelist и DOMAIN_NAMES
     """
-    # Извлекаем все возможные домены
-    domains = extract_all_possible_domains(vless_url)
+    # Используем универсальный экстрактор доменов для всех протоколов
+    domains = extract_all_possible_domains_generic(vless_url)
     
     # Проверяем по whitelist
     for domain in domains:
@@ -1191,15 +1433,18 @@ async def process_url(session, url, sem, output_lock, stats):
     if not content:
         return
 
-    matches = VLESS_REGEX.findall(content)
-    if matches:
+    all_matches = []
+    for regex in PROTOCOL_REGEXES.values():
+        all_matches.extend(regex.findall(content))
+
+    if all_matches:
         async with output_lock:
             async with aiofiles.open(OUTPUT_FILE, "a", encoding="utf-8") as f:
-                for m in matches:
+                for m in all_matches:
                     await f.write(m + "\n")
-        stats["found"] += len(matches)
+        stats["found"] += len(all_matches)
 
-    print(f"Обработано: {stats['processed']} | Найдено VLESS: {stats['found']}", end="\r")
+    print(f"Обработано: {stats['processed']} | Найдено конфигов: {stats['found']}", end="\r")
 
 
 # ========= ОЧИСТКА =========
@@ -1222,7 +1467,7 @@ async def clean_vless():
 
     for line in lines:
         url = line.strip()
-        if not url or not validate_vless(url):
+        if not url or not validate_config(url):
             continue
         # Deduplicate by URL without the fragment (name) part
         url_key = url.split("#", 1)[0]
@@ -1300,9 +1545,9 @@ async def rename_configs():
             if not url:
                 continue
 
-            protocol = detect_protocol(url)
+            protocol = detect_protocol_label(url)
             
-            domains = extract_all_possible_domains(url)
+            domains = extract_all_possible_domains_generic(url)
             human_name = "Неизвестно"
             
             if domains:
@@ -1408,6 +1653,23 @@ def encode_vless_url(url: str) -> str:
         return url
 
 
+def encode_config_url(url: str) -> str:
+    """Encodes/normalizes a config URL for any protocol"""
+    proto = get_protocol_type(url)
+    if proto == 'vless':
+        return encode_vless_url(url)
+    # For other protocols: ensure the fragment (name) is properly percent-encoded
+    if '#' in url:
+        base, fragment = url.split('#', 1)
+        try:
+            if any(ord(c) > 127 for c in fragment):
+                fragment = urllib.parse.quote(fragment, safe='')
+        except Exception:
+            pass
+        return f"{base}#{fragment}"
+    return url
+
+
 async def encode_all_configs():
     """
     Кодирует все конфиги для лучшей совместимости с Xray
@@ -1430,7 +1692,7 @@ async def encode_all_configs():
     
     async with aiofiles.open(ENCODED_FILE, "w", encoding="utf-8") as f_out:
         for i, url in enumerate(configs, 1):
-            encoded_url = encode_vless_url(url)
+            encoded_url = encode_config_url(url)
             await f_out.write(encoded_url + "\n")
             
             if encoded_url != url:
@@ -1535,17 +1797,26 @@ def normalize_vless_url(url: str) -> str:
     return url.split('#')[0].strip()
 
 def load_notworkers(filepath: str) -> dict:
-    """Загружает чёрный список нерабочих конфигов"""
+    """Загружает чёрный список нерабочих конфигов (поддерживает версионный и legacy-форматы)"""
     if not os.path.exists(filepath):
         return {}
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
+        # Поддержка версионного формата {"version": 1, "entries": {...}}
+        if isinstance(data, dict) and 'entries' in data:
+            version = data.get('version', 1)
+            if version != 1:
+                print(f"⚠️ Неизвестная версия чёрного списка: {version}, попытка загрузки")
+            entries = data.get('entries', {})
+        else:
+            # Legacy flat format — migrate on next save
+            entries = data
         # Очистка по TTL
         now = datetime.utcnow()
         cleaned = {}
         skipped_invalid = 0
-        for key, info in data.items():
+        for key, info in entries.items():
             try:
                 last_seen = datetime.strptime(info.get('last_seen', ''), '%Y-%m-%dT%H:%M:%SZ')
                 if (now - last_seen).days < NOTWORKERS_TTL_DAYS:
@@ -1554,19 +1825,24 @@ def load_notworkers(filepath: str) -> dict:
                 skipped_invalid += 1
         if skipped_invalid:
             print(f"⚠️ Пропущено записей с некорректным форматом: {skipped_invalid}")
-        if len(cleaned) != len(data) - skipped_invalid:
-            print(f"🗑️ Очищено из чёрного списка по TTL ({NOTWORKERS_TTL_DAYS}д): {len(data) - skipped_invalid - len(cleaned)} записей")
+        expired = len(entries) - skipped_invalid - len(cleaned)
+        if expired > 0:
+            print(f"🗑️ Очищено из чёрного списка по TTL ({NOTWORKERS_TTL_DAYS}д): {expired} записей")
         return cleaned
     except Exception as e:
         print(f"⚠️ Ошибка загрузки чёрного списка: {e}")
         return {}
 
 def save_notworkers(filepath: str, notworkers: dict):
-    """Сохраняет чёрный список"""
+    """Сохраняет чёрный список в версионном JSON-формате"""
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     try:
+        data = {
+            "version": 1,
+            "entries": notworkers
+        }
         with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(notworkers, f, ensure_ascii=False, indent=2)
+            json.dump(data, f, ensure_ascii=False, indent=2)
         print(f"📝 Чёрный список сохранён: {len(notworkers)} записей")
     except Exception as e:
         print(f"⚠️ Ошибка сохранения чёрного списка: {e}")
@@ -1592,15 +1868,18 @@ def update_notworkers(notworkers: dict, failed_urls: list, working_urls: list) -
         key = normalize_vless_url(url)
         if not key:
             continue
+        proto = get_protocol_type(url)
         if key in notworkers:
             notworkers[key]['last_seen'] = now_str
             notworkers[key]['fail_count'] = notworkers[key].get('fail_count', 1) + 1
             updated += 1
         else:
             notworkers[key] = {
+                'raw': url,
                 'first_seen': now_str,
                 'last_seen': now_str,
-                'fail_count': 1
+                'fail_count': 1,
+                'protocol': proto
             }
             added += 1
 
@@ -1625,7 +1904,10 @@ class XrayTester:
         self.retry_delay = RETRY_DELAY
         
         self.xray_dir = Path('./xray_bin')
-        self.xray_path = self.xray_dir / 'xray.exe'
+        if sys.platform == 'win32':
+            self.xray_path = self.xray_dir / 'xray.exe'
+        else:
+            self.xray_path = self.xray_dir / 'xray'
         
         self.port_manager = PortManager()
         
@@ -1658,20 +1940,43 @@ class XrayTester:
                 print(f"⚠️ Xray найден, но ошибка версии: {e}")
 
     def download_xray(self):
-        """Скачивает Xray"""
+        """Скачивает Xray для текущей платформы"""
         import urllib.request
         import zipfile
-        
+
         self.xray_dir.mkdir(exist_ok=True)
-        url = "https://github.com/XTLS/Xray-core/releases/latest/download/Xray-windows-64.zip"
+
+        system = platform.system().lower()
+        machine = platform.machine().lower()
+        _is_arm = machine in ('arm64', 'aarch64', 'armv8', 'armv7l')
+
+        if system == 'windows':
+            archive_name = 'Xray-windows-arm64-v8a.zip' if _is_arm else 'Xray-windows-64.zip'
+            xray_bin = 'xray.exe'
+        elif system == 'linux':
+            archive_name = 'Xray-linux-arm64-v8a.zip' if _is_arm else 'Xray-linux-64.zip'
+            xray_bin = 'xray'
+        elif system == 'darwin':
+            archive_name = 'Xray-macos-arm64-v8a.zip' if _is_arm else 'Xray-macos-64.zip'
+            xray_bin = 'xray'
+        else:
+            archive_name = 'Xray-linux-64.zip'
+            xray_bin = 'xray'
+
+        url = f"https://github.com/XTLS/Xray-core/releases/latest/download/{archive_name}"
         zip_path = self.xray_dir / "xray.zip"
-        
+
         try:
-            print(f"📥 Загрузка Xray...")
+            print(f"📥 Загрузка Xray ({archive_name})...")
             urllib.request.urlretrieve(url, zip_path)
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 zip_ref.extractall(self.xray_dir)
             zip_path.unlink()
+            # Make executable on Unix
+            if system != 'windows':
+                xray_bin_path = self.xray_dir / xray_bin
+                if xray_bin_path.exists():
+                    os.chmod(xray_bin_path, 0o755)
             print("✅ Xray загружен")
         except Exception as e:
             print(f"❌ Ошибка загрузки Xray: {e}")
@@ -1724,6 +2029,7 @@ class XrayTester:
                         params[k] = v
             
             return {
+                'protocol': 'vless',
                 'uuid': uuid,
                 'host': host,
                 'port': port,
@@ -1733,9 +2039,305 @@ class XrayTester:
         except Exception as e:
             return None
 
-    def create_xray_config(self, parsed, port):
-        """Создает конфиг Xray"""
+    def parse_vmess_url(self, url: str) -> Optional[dict]:
+        """Парсит VMess URL (base64-encoded JSON)"""
         try:
+            if not url.lower().startswith('vmess://'):
+                return None
+            b64 = url[8:].split('#')[0].strip()
+            padding = 4 - len(b64) % 4
+            if padding != 4:
+                b64 += '=' * padding
+            try:
+                decoded = base64.b64decode(b64).decode('utf-8', errors='ignore')
+            except Exception:
+                decoded = base64.urlsafe_b64decode(b64).decode('utf-8', errors='ignore')
+            data = json.loads(decoded)
+            return {
+                'protocol': 'vmess',
+                'host': str(data.get('add', '')),
+                'port': int(data.get('port', 443)),
+                'id': str(data.get('id', '')),
+                'aid': int(data.get('aid', 0)),
+                'net': str(data.get('net', 'tcp')),
+                'type': str(data.get('type', 'none')),
+                'host_header': str(data.get('host', '')),
+                'path': str(data.get('path', '/')),
+                'tls': str(data.get('tls', '')),
+                'sni': str(data.get('sni', data.get('host', ''))),
+                'url': url
+            }
+        except Exception:
+            return None
+
+    def parse_trojan_url_xray(self, url: str) -> Optional[dict]:
+        """Парсит Trojan URL"""
+        try:
+            if not url.lower().startswith('trojan://'):
+                return None
+            content = url[9:]
+            if '#' in content:
+                content = content.split('#')[0]
+            if '@' not in content:
+                return None
+            password, rest = content.split('@', 1)
+            if '?' in rest:
+                host_part, query = rest.split('?', 1)
+            else:
+                host_part = rest
+                query = ''
+            if ':' in host_part:
+                host, port_str = host_part.rsplit(':', 1)
+                port = int(port_str)
+            else:
+                host = host_part
+                port = 443
+            params = {}
+            if query:
+                for param in query.split('&'):
+                    if '=' in param:
+                        k, v = param.split('=', 1)
+                        try:
+                            v = urllib.parse.unquote(v)
+                        except Exception:
+                            pass
+                        params[k.lower()] = v
+            return {
+                'protocol': 'trojan',
+                'password': password,
+                'host': host,
+                'port': port,
+                'params': params,
+                'url': url
+            }
+        except Exception:
+            return None
+
+    def parse_ss_url_xray(self, url: str) -> Optional[dict]:
+        """Парсит Shadowsocks URL"""
+        try:
+            if not url.lower().startswith('ss://'):
+                return None
+            content = url[5:]
+            if '#' in content:
+                content = content.split('#')[0]
+            if '@' in content:
+                userinfo, hostinfo = content.split('@', 1)
+                try:
+                    padding = 4 - len(userinfo) % 4
+                    if padding != 4:
+                        userinfo += '=' * padding
+                    decoded = base64.b64decode(userinfo).decode('utf-8', errors='ignore')
+                    method, password = decoded.split(':', 1) if ':' in decoded else ('chacha20-ietf-poly1305', decoded)
+                except Exception:
+                    method, password = userinfo.split(':', 1) if ':' in userinfo else ('chacha20-ietf-poly1305', userinfo)
+                host_part = hostinfo.split('?', 1)[0]
+                if ':' in host_part:
+                    host, port_str = host_part.rsplit(':', 1)
+                    port = int(port_str)
+                else:
+                    host = host_part
+                    port = 8388
+            else:
+                b64 = content
+                padding = 4 - len(b64) % 4
+                if padding != 4:
+                    b64 += '=' * padding
+                decoded = base64.b64decode(b64).decode('utf-8', errors='ignore')
+                if '@' not in decoded:
+                    return None
+                userpart, hostpart = decoded.split('@', 1)
+                method, password = userpart.split(':', 1) if ':' in userpart else ('chacha20-ietf-poly1305', userpart)
+                if ':' in hostpart:
+                    host, port_str = hostpart.rsplit(':', 1)
+                    port = int(port_str)
+                else:
+                    host = hostpart
+                    port = 8388
+            return {
+                'protocol': 'ss',
+                'method': method,
+                'password': password,
+                'host': host,
+                'port': port,
+                'url': url
+            }
+        except Exception:
+            return None
+
+    def parse_hysteria2_url_xray(self, url: str) -> Optional[dict]:
+        """Парсит Hysteria2 URL"""
+        try:
+            url_lower = url.lower()
+            if url_lower.startswith('hysteria2://'):
+                content = url[12:]
+            elif url_lower.startswith('hy2://'):
+                content = url[6:]
+            else:
+                return None
+            if '#' in content:
+                content = content.split('#')[0]
+            auth = ''
+            if '@' in content:
+                auth, rest = content.split('@', 1)
+            else:
+                rest = content
+            if '?' in rest:
+                host_part, query = rest.split('?', 1)
+            else:
+                host_part = rest
+                query = ''
+            if ':' in host_part:
+                host, port_str = host_part.rsplit(':', 1)
+                port = int(port_str)
+            else:
+                host = host_part
+                port = 443
+            params = {}
+            if query:
+                for param in query.split('&'):
+                    if '=' in param:
+                        k, v = param.split('=', 1)
+                        try:
+                            v = urllib.parse.unquote(v)
+                        except Exception:
+                            pass
+                        params[k.lower()] = v
+            return {
+                'protocol': 'hysteria2',
+                'auth': auth,
+                'host': host,
+                'port': port,
+                'params': params,
+                'url': url
+            }
+        except Exception:
+            return None
+
+    def _create_inbound(self, port: int) -> dict:
+        """Creates a standard SOCKS5 inbound config"""
+        return {
+            "port": port,
+            "protocol": "socks",
+            "settings": {"auth": "noauth", "udp": False},
+            "tag": "socks-in"
+        }
+
+    def _create_vmess_config(self, parsed: dict, port: int) -> Optional[dict]:
+        """Creates Xray config for VMess"""
+        try:
+            net = parsed.get('net', 'tcp')
+            tls = parsed.get('tls', '')
+            sni = parsed.get('sni', '') or parsed.get('host_header', '') or parsed['host']
+            stream = {"network": net, "security": tls}
+            if tls == 'tls':
+                stream["tlsSettings"] = {"serverName": sni, "allowInsecure": True}
+            if net in ('ws', 'websocket'):
+                stream["wsSettings"] = {
+                    "path": parsed.get('path', '/'),
+                    "headers": {"Host": parsed.get('host_header', '') or sni}
+                }
+            elif net in ('grpc', 'gun'):
+                stream["grpcSettings"] = {"serviceName": parsed.get('path', ''), "multiMode": True}
+            return {
+                "log": {"loglevel": "error"},
+                "inbounds": [self._create_inbound(port)],
+                "outbounds": [{
+                    "protocol": "vmess",
+                    "settings": {"vnext": [{
+                        "address": parsed['host'],
+                        "port": parsed['port'],
+                        "users": [{"id": parsed['id'], "alterId": parsed.get('aid', 0), "security": "auto"}]
+                    }]},
+                    "streamSettings": stream,
+                    "tag": "proxy"
+                }]
+            }
+        except Exception:
+            return None
+
+    def _create_trojan_config(self, parsed: dict, port: int) -> Optional[dict]:
+        """Creates Xray config for Trojan"""
+        try:
+            params = parsed.get('params', {})
+            security = params.get('security', 'tls') or 'tls'
+            sni = params.get('sni', '') or params.get('peer', '') or parsed['host']
+            net = params.get('type', 'tcp') or 'tcp'
+            stream = {
+                "network": net,
+                "security": security,
+                "tlsSettings": {"serverName": sni, "allowInsecure": True}
+            }
+            if net in ('ws', 'websocket'):
+                stream["wsSettings"] = {
+                    "path": params.get('path', '/'),
+                    "headers": {"Host": params.get('host', sni)}
+                }
+            elif net in ('grpc', 'gun'):
+                stream["grpcSettings"] = {
+                    "serviceName": params.get('servicename', params.get('service', '')),
+                    "multiMode": True
+                }
+            return {
+                "log": {"loglevel": "error"},
+                "inbounds": [self._create_inbound(port)],
+                "outbounds": [{
+                    "protocol": "trojan",
+                    "settings": {"servers": [{
+                        "address": parsed['host'],
+                        "port": parsed['port'],
+                        "password": parsed['password']
+                    }]},
+                    "streamSettings": stream,
+                    "tag": "proxy"
+                }]
+            }
+        except Exception:
+            return None
+
+    def _create_ss_config(self, parsed: dict, port: int) -> Optional[dict]:
+        """Creates Xray config for Shadowsocks"""
+        try:
+            return {
+                "log": {"loglevel": "error"},
+                "inbounds": [self._create_inbound(port)],
+                "outbounds": [{
+                    "protocol": "shadowsocks",
+                    "settings": {"servers": [{
+                        "address": parsed['host'],
+                        "port": parsed['port'],
+                        "method": parsed.get('method', 'chacha20-ietf-poly1305'),
+                        "password": parsed['password']
+                    }]},
+                    "tag": "proxy"
+                }]
+            }
+        except Exception:
+            return None
+
+    def _check_hysteria2_alt(self, parsed: dict, url: str) -> Optional[dict]:
+        """Checks Hysteria2 via TCP + TLS handshake (Xray does not support Hysteria2)"""
+        host = parsed['host']
+        port = parsed['port']
+        sni = parsed.get('params', {}).get('sni', host)
+        if not check_tcp_connection(host, port, timeout=2):
+            return None
+        tls_ok, _, _ = check_tls_handshake(host, port, sni, timeout=2)
+        if tls_ok:
+            return {'url': url, 'ping': 150, 'method': 'tls_check'}
+        return None
+
+    def create_xray_config(self, parsed, port):
+        """Создает конфиг Xray для любого поддерживаемого протокола"""
+        try:
+            proto = parsed.get('protocol', 'vless')
+            if proto == 'vmess':
+                return self._create_vmess_config(parsed, port)
+            elif proto == 'trojan':
+                return self._create_trojan_config(parsed, port)
+            elif proto == 'ss':
+                return self._create_ss_config(parsed, port)
+            # Default: VLESS
             params = parsed['params']
             
             flow = params.get('flow', '')
@@ -1901,52 +2503,74 @@ class XrayTester:
         """Проверяет конфиг альтернативными методами"""
         host = parsed['host']
         port = parsed['port']
-        params = parsed['params']
-        security = params.get('security', '')
-        sni = params.get('sni', host)
-        
+        proto = parsed.get('protocol', 'vless')
+
+        if proto == 'trojan':
+            params = parsed.get('params', {})
+            security = params.get('security', 'tls') or 'tls'
+            sni = params.get('sni', '') or params.get('peer', '') or host
+        else:
+            # VLESS
+            params = parsed.get('params', {})
+            security = params.get('security', '')
+            sni = params.get('sni', host)
+
         tcp_ok = check_tcp_connection(host, port, timeout=2)
-        
+
         if not tcp_ok:
             return None
-        
+
         if security in ['reality', 'tls']:
             tls_ok, tls_version, _ = check_tls_handshake(host, port, sni, timeout=2)
-            
             if tls_ok:
-                return {
-                    'url': url, 
-                    'ping': 100,
-                    'method': f'tls_check',
-                    'security': security
-                }
-        
+                return {'url': url, 'ping': 100, 'method': 'tls_check', 'security': security}
+
         return None
 
     def test_one(self, url):
-        """Тестирует один конфиг"""
-        parsed = self.parse_vless_url(url)
+        """Тестирует один конфиг (поддерживает все протоколы)"""
+        proto = get_protocol_type(url)
+
+        # Hysteria2 не поддерживается Xray — только TCP+TLS проверка
+        if proto == 'hysteria2':
+            parsed = self.parse_hysteria2_url_xray(url)
+            if not parsed:
+                return None
+            return self._check_hysteria2_alt(parsed, url)
+
+        # Выбираем парсер по протоколу
+        if proto == 'vless':
+            parsed = self.parse_vless_url(url)
+        elif proto == 'vmess':
+            parsed = self.parse_vmess_url(url)
+        elif proto == 'trojan':
+            parsed = self.parse_trojan_url_xray(url)
+        elif proto == 'ss':
+            parsed = self.parse_ss_url_xray(url)
+        else:
+            return None
+
         if not parsed:
             return None
-        
+
         port = self.port_manager.get_port()
         if port:
             try:
                 for attempt in range(1, self.max_retries + 1):
                     result = self.test_with_xray(parsed, port, attempt)
-                    
+
                     if isinstance(result, dict) and result.get('working'):
                         self.port_manager.release_port(port)
                         return {'url': url, 'ping': result['ping'], 'method': 'xray'}
-                    
-                    elif result and result.startswith("CRASH_"):
+
+                    elif isinstance(result, str) and result.startswith("CRASH_"):
                         if attempt < self.max_retries:
                             time.sleep(self.retry_delay)
                             continue
                         else:
                             with open(self.debug_file, 'a', encoding='utf-8') as f:
                                 f.write(f"{result}_{attempt}: {url}\n")
-                    
+
                     elif result in ["TIMEOUT", "FAIL", "CONN_ERROR"]:
                         if attempt < self.max_retries:
                             time.sleep(self.retry_delay)
@@ -1954,21 +2578,26 @@ class XrayTester:
                         else:
                             with open(self.debug_file, 'a', encoding='utf-8') as f:
                                 f.write(f"{result}_{attempt}: {url}\n")
-                    
+
                     else:
                         with open(self.debug_file, 'a', encoding='utf-8') as f:
                             f.write(f"{result}_{attempt}: {url}\n")
                         break
-                
+
                 self.port_manager.release_port(port)
-                
-            except:
+
+            except Exception:
                 self.port_manager.release_port(port)
-        
-        alt_result = self.check_alternative_methods(parsed, url)
-        if alt_result:
-            return alt_result
-        
+
+        # Fallback alt check
+        if proto in ('vless', 'trojan'):
+            alt_result = self.check_alternative_methods(parsed, url)
+            if alt_result:
+                return alt_result
+        elif proto in ('vmess', 'ss'):
+            if check_tcp_connection(parsed['host'], parsed['port'], timeout=2):
+                return {'url': url, 'ping': 200, 'method': 'tcp_check'}
+
         return None
 
     def test_all(self):
@@ -2097,32 +2726,53 @@ def country_code_to_flag(code: str) -> str:
 
 
 def extract_host_ip(vless_url: str) -> Optional[str]:
-    """Извлекает хост или IP-адрес из VLESS URL"""
+    """Извлекает хост или IP-адрес из URL любого поддерживаемого протокола"""
     try:
-        if not vless_url.startswith("vless://"):
-            return None
-        content = vless_url[len("vless://"):]
-        at_pos = content.find('@')
-        if at_pos == -1:
-            return None
-        after_at = content[at_pos + 1:]
-        # Убираем фрагмент (#...)
-        hash_pos = after_at.find('#')
-        if hash_pos != -1:
-            after_at = after_at[:hash_pos]
-        # Убираем query (?...)
-        q_pos = after_at.find('?')
-        if q_pos != -1:
-            after_at = after_at[:q_pos]
-        # Убираем порт
-        if after_at.startswith('['):
-            # IPv6
-            bracket_end = after_at.find(']')
-            if bracket_end != -1:
-                return after_at[1:bracket_end]
-        if ':' in after_at:
-            return after_at.rsplit(':', 1)[0]
-        return after_at or None
+        url_no_frag = vless_url.split('#', 1)[0]
+        proto = get_protocol_type(url_no_frag)
+
+        if proto == 'vless':
+            content = url_no_frag[len("vless://"):]
+            at_pos = content.find('@')
+            if at_pos == -1:
+                return None
+            after_at = content[at_pos + 1:]
+            q_pos = after_at.find('?')
+            if q_pos != -1:
+                after_at = after_at[:q_pos]
+            if after_at.startswith('['):
+                bracket_end = after_at.find(']')
+                if bracket_end != -1:
+                    return after_at[1:bracket_end]
+            if ':' in after_at:
+                return after_at.rsplit(':', 1)[0]
+            return after_at or None
+
+        elif proto == 'vmess':
+            try:
+                b64 = url_no_frag[8:].strip()
+                padding = 4 - len(b64) % 4
+                if padding != 4:
+                    b64 += '=' * padding
+                decoded = base64.b64decode(b64).decode('utf-8', errors='ignore')
+                data = json.loads(decoded)
+                return data.get('add') or None
+            except Exception:
+                return None
+
+        elif proto in ('trojan', 'ss', 'hysteria2'):
+            if proto == 'hysteria2':
+                content = url_no_frag[len('hysteria2://'):] if url_no_frag.lower().startswith('hysteria2://') else url_no_frag[len('hy2://'):]
+            elif proto == 'trojan':
+                content = url_no_frag[len('trojan://'):]
+            else:
+                content = url_no_frag[len('ss://'):]
+            after_at = content.split('@', 1)[1] if '@' in content else content
+            host_part = after_at.split('?', 1)[0]
+            if ':' in host_part:
+                return host_part.rsplit(':', 1)[0]
+            return host_part or None
+
     except Exception:
         return None
 
@@ -2264,8 +2914,8 @@ async def main_cycle():
         tasks = [process_url(session, url, sem, output_lock, stats) for url in urls]
         await asyncio.gather(*tasks)
 
-    print(f"\n✅ Скачивание завершено. Найдено VLESS: {stats['found']}")
-    await log(f"Скачивание завершено. Найдено VLESS: {stats['found']}")
+    print(f"\n✅ Скачивание завершено. Найдено конфигов: {stats['found']}")
+    await log(f"Скачивание завершено. Найдено конфигов: {stats['found']}")
 
     if stats['found'] > 0:
         await clean_vless()

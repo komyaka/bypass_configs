@@ -1,0 +1,22 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Xray binary (downloaded at runtime)
+xray_bin/
+
+# Runtime generated files (not committed)
+url.txt
+url_clean.txt
+url_filtered.txt
+url_named.txt
+url_encoded.txt
+url_combined.txt
+url_work.txt
+url_work_speed.txt
+log.txt
+debug_failed.txt
+xray_errors.log
+processed.json
+cache_results.json
