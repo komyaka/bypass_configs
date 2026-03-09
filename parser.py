@@ -55,6 +55,7 @@ PROCESSED_FILE = "processed.json"
 CACHE_FILE = "cache_results.json"
 DEBUG_FILE = "debug_failed.txt"
 XRAY_LOG_FILE = "xray_errors.log"
+NOTWORKERS_FILE = "configs/notworkers.json"
 
 # ========= НАСТРОЙКИ =========
 THREADS_DOWNLOAD = _config.getint('threads', 'threads_download', fallback=50)
@@ -69,6 +70,9 @@ MAX_RETRIES = 2
 RETRY_DELAY = 1
 TOP_FAST_COUNT = _config.getint('speed', 'top_fast_count', fallback=30)
 SPEED_TEST_REQUESTS = _config.getint('speed', 'speed_test_requests', fallback=3)
+
+NOTWORKERS_ENABLED = _config.getboolean('notworkers', 'notworkers_enabled', fallback=True)
+NOTWORKERS_TTL_DAYS = _config.getint('notworkers', 'notworkers_ttl_days', fallback=7)
 
 print(f"⚡ Настройки: XRAY_MAX_WORKERS={XRAY_MAX_WORKERS}, TIMEOUT={XRAY_TIMEOUT}")
 
@@ -1451,6 +1455,7 @@ def check_tls_handshake(host: str, port: int = 443, sni: str = None, timeout: in
         context = ssl.create_default_context()
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
         
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(timeout)
@@ -1513,6 +1518,86 @@ class PortManager:
     def release_port(self, port):
         with self.lock:
             self.used.discard(port)
+
+
+# ========= ЧЁРНЫЙ СПИСОК (NOTWORKERS) =========
+
+def normalize_vless_url(url: str) -> str:
+    """Нормализует VLESS URL — убирает фрагмент (#...) для корректного сравнения"""
+    return url.split('#')[0].strip()
+
+def load_notworkers(filepath: str) -> dict:
+    """Загружает чёрный список нерабочих конфигов"""
+    if not os.path.exists(filepath):
+        return {}
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        # Очистка по TTL
+        now = datetime.utcnow()
+        cleaned = {}
+        skipped_invalid = 0
+        for key, info in data.items():
+            try:
+                last_seen = datetime.strptime(info.get('last_seen', ''), '%Y-%m-%dT%H:%M:%SZ')
+                if (now - last_seen).days < NOTWORKERS_TTL_DAYS:
+                    cleaned[key] = info
+            except (ValueError, KeyError):
+                skipped_invalid += 1
+        if skipped_invalid:
+            print(f"⚠️ Пропущено записей с некорректным форматом: {skipped_invalid}")
+        if len(cleaned) != len(data) - skipped_invalid:
+            print(f"🗑️ Очищено из чёрного списка по TTL ({NOTWORKERS_TTL_DAYS}д): {len(data) - skipped_invalid - len(cleaned)} записей")
+        return cleaned
+    except Exception as e:
+        print(f"⚠️ Ошибка загрузки чёрного списка: {e}")
+        return {}
+
+def save_notworkers(filepath: str, notworkers: dict):
+    """Сохраняет чёрный список"""
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(notworkers, f, ensure_ascii=False, indent=2)
+        print(f"📝 Чёрный список сохранён: {len(notworkers)} записей")
+    except Exception as e:
+        print(f"⚠️ Ошибка сохранения чёрного списка: {e}")
+
+def update_notworkers(notworkers: dict, failed_urls: list, working_urls: list) -> dict:
+    """Обновляет чёрный список: добавляет нерабочие, удаляет ожившие"""
+    now_str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    # Удаляем ожившие конфиги
+    working_normalized = {normalize_vless_url(url) for url in working_urls}
+    removed = 0
+    for key in list(notworkers.keys()):
+        if key in working_normalized:
+            del notworkers[key]
+            removed += 1
+    if removed:
+        print(f"✅ Удалено из чёрного списка (ожили): {removed}")
+
+    # Добавляем/обновляем нерабочие
+    added = 0
+    updated = 0
+    for url in failed_urls:
+        key = normalize_vless_url(url)
+        if not key:
+            continue
+        if key in notworkers:
+            notworkers[key]['last_seen'] = now_str
+            notworkers[key]['fail_count'] = notworkers[key].get('fail_count', 1) + 1
+            updated += 1
+        else:
+            notworkers[key] = {
+                'first_seen': now_str,
+                'last_seen': now_str,
+                'fail_count': 1
+            }
+            added += 1
+
+    print(f"📊 Чёрный список: +{added} новых, ~{updated} обновлено, -{removed} ожило | Всего: {len(notworkers)}")
+    return notworkers
 
 
 class XrayTester:
@@ -1894,6 +1979,25 @@ class XrayTester:
         if not all_urls:
             print(f"\n📭 Нет конфигов для тестирования")
             return
+
+        # === Фильтрация по чёрному списку ===
+        notworkers = {}
+        if NOTWORKERS_ENABLED:
+            notworkers = load_notworkers(NOTWORKERS_FILE)
+            notworkers_keys = set(notworkers.keys())
+            filtered_urls = []
+            skipped_count = 0
+            for url in all_urls:
+                if normalize_vless_url(url) in notworkers_keys:
+                    skipped_count += 1
+                else:
+                    filtered_urls.append(url)
+            if skipped_count:
+                print(f"⚫ Пропущено (чёрный список): {skipped_count} конфигов")
+            all_urls = filtered_urls
+            if not all_urls:
+                print(f"\n📭 Все конфиги в чёрном списке")
+                return
         
         print(f"\n{'='*60}")
         print(f"🔍 Тестирование {len(all_urls)} конфигов")
@@ -1956,6 +2060,14 @@ class XrayTester:
             print(f"🔍 Xray ошибки: {xray_lines} в {self.xray_log_file}")
         
         print('='*60 + '\n')
+
+        # === Обновление чёрного списка ===
+        if NOTWORKERS_ENABLED:
+            working_url_list = [w['url'] for w in working]
+            working_url_set = set(working_url_list)
+            failed_urls = [url for url in all_urls if url not in working_url_set]
+            notworkers = update_notworkers(notworkers, failed_urls, working_url_list)
+            save_notworkers(NOTWORKERS_FILE, notworkers)
         
         return working
 
@@ -2181,6 +2293,15 @@ async def main_cycle():
     if not urls_to_test:
         print("⏭️ Нет конфигов для проверки")
         return
+
+    # Фильтрация по чёрному списку перед передачей в XrayTester
+    if NOTWORKERS_ENABLED:
+        notworkers_keys = set(load_notworkers(NOTWORKERS_FILE).keys())
+        pre_filter_count = len(urls_to_test)
+        urls_to_test = [url for url in urls_to_test if normalize_vless_url(url) not in notworkers_keys]
+        filtered_count = pre_filter_count - len(urls_to_test)
+        if filtered_count:
+            print(f"⚫ Отфильтровано по чёрному списку (до XrayTester): {filtered_count} конфигов")
 
     print(f"\n📋 Итого для проверки: {len(urls_to_test)} конфигов")
     with open(COMBINED_FILE, 'w', encoding='utf-8') as f:

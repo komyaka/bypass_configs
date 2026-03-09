@@ -2,8 +2,8 @@ name: Обновление конфигов VPN
 
 on:
   schedule:
-    # Запуск каждые 6 часов (в 0:00, 6:00, 12:00, 18:00 UTC)
-    - cron: '0 */6 * * *'
+    # Запуск каждые ~25 минут (:00, :25, :50 каждого часа)
+    - cron: '0,25,50 * * * *'
   workflow_dispatch:
     # Ручной запуск через интерфейс GitHub
 
@@ -14,7 +14,7 @@ jobs:
   update-configs:
     name: Парсинг и обновление конфигов
     runs-on: windows-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
 
     steps:
       - name: Клонирование репозитория
@@ -32,8 +32,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Запуск парсера (один цикл)
-        run: python "parser#РКП.py" --once
-        timeout-minutes: 75
+        run: python parser.py --once
+        timeout-minutes: 20
 
       - name: Копирование результатов в папку configs
         shell: pwsh
@@ -53,7 +53,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add configs/url_work.txt configs/url_work_speed.txt
+          git add configs/url_work.txt configs/url_work_speed.txt configs/notworkers.json
           $changes = git status --porcelain
           if ($changes) {
             $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd HH:mm") + " UTC"
