@@ -1964,6 +1964,146 @@ class XrayTester:
         self.test_all()
 
 
+# ========= СТРАНА / ФЛАГ =========
+def country_code_to_flag(code: str) -> str:
+    """Конвертирует ISO-3166 двухбуквенный код страны в Unicode-эмодзи флага"""
+    try:
+        code = code.strip().upper()
+        if len(code) != 2 or not code.isalpha():
+            return "🏳"
+        return chr(0x1F1E6 + ord(code[0]) - ord('A')) + chr(0x1F1E6 + ord(code[1]) - ord('A'))
+    except Exception:
+        return "🏳"
+
+
+def extract_host_ip(vless_url: str) -> Optional[str]:
+    """Извлекает хост или IP-адрес из VLESS URL"""
+    try:
+        if not vless_url.startswith("vless://"):
+            return None
+        content = vless_url[len("vless://"):]
+        at_pos = content.find('@')
+        if at_pos == -1:
+            return None
+        after_at = content[at_pos + 1:]
+        # Убираем фрагмент (#...)
+        hash_pos = after_at.find('#')
+        if hash_pos != -1:
+            after_at = after_at[:hash_pos]
+        # Убираем query (?...)
+        q_pos = after_at.find('?')
+        if q_pos != -1:
+            after_at = after_at[:q_pos]
+        # Убираем порт
+        if after_at.startswith('['):
+            # IPv6
+            bracket_end = after_at.find(']')
+            if bracket_end != -1:
+                return after_at[1:bracket_end]
+        if ':' in after_at:
+            return after_at.rsplit(':', 1)[0]
+        return after_at or None
+    except Exception:
+        return None
+
+
+def get_countries_batch(ips: list) -> dict:
+    """
+    Запрашивает страны для списка IP через ip-api.com batch endpoint.
+    Возвращает словарь {ip: {'country': ..., 'countryCode': ...}}.
+    """
+    result = {}
+    if not ips:
+        return result
+    # ip-api.com batch API принимает до 100 адресов за раз
+    batch_size = 100
+    try:
+        for i in range(0, len(ips), batch_size):
+            batch = ips[i:i + batch_size]
+            payload = [{"query": ip, "fields": "query,country,countryCode,status"} for ip in batch]
+            response = requests.post(
+                "http://ip-api.com/batch",
+                json=payload,
+                timeout=10,
+            )
+            if response.status_code == 200:
+                data = response.json()
+                for entry in data:
+                    query_ip = entry.get("query", "")
+                    if entry.get("status") == "success":
+                        result[query_ip] = {
+                            "country": entry.get("country", "Unknown"),
+                            "countryCode": entry.get("countryCode", ""),
+                        }
+                    else:
+                        result[query_ip] = {"country": "Unknown", "countryCode": ""}
+            else:
+                for ip in batch:
+                    result[ip] = {"country": "Unknown", "countryCode": ""}
+    except Exception as e:
+        print(f"⚠️ Ошибка запроса к ip-api.com: {e}")
+        for ip in ips:
+            if ip not in result:
+                result[ip] = {"country": "Unknown", "countryCode": ""}
+    return result
+
+
+async def rename_working_configs():
+    """
+    Переписывает url_work.txt и url_work_speed.txt, присваивая каждому конфигу
+    имя вида «🇷🇺 Russia 1», «🇷🇺 Russia 2», … (флаг + страна + порядковый номер).
+    """
+    print("\n=== Переименование рабочих конфигов по стране ===")
+
+    for filepath in (WORK_FILE, SPEED_FILE):
+        if not os.path.exists(filepath):
+            continue
+
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                lines = [line.rstrip("\n") for line in f]
+        except Exception as e:
+            print(f"⚠️ Не удалось прочитать {filepath}: {e}")
+            continue
+
+        urls = [l for l in lines if l.strip()]
+        if not urls:
+            continue
+
+        # Собираем уникальные хосты/IP
+        hosts = []
+        for url in urls:
+            host = extract_host_ip(url.split('#', 1)[0])
+            hosts.append(host or "")
+
+        unique_ips = list({h for h in hosts if h})
+        ip_info = get_countries_batch(unique_ips) if unique_ips else {}
+
+        # Счётчики по странам
+        country_counters: dict = {}
+        renamed = []
+        for url, host in zip(urls, hosts):
+            info = ip_info.get(host, {"country": "Unknown", "countryCode": ""})
+            country = info.get("country", "Unknown") or "Unknown"
+            code = info.get("countryCode", "") or ""
+            flag = country_code_to_flag(code) if code else "🏳"
+
+            country_counters[country] = country_counters.get(country, 0) + 1
+            num = country_counters[country]
+
+            base = url.split('#', 1)[0]
+            new_url = f"{base}#{flag} {country} {num}"
+            renamed.append(new_url)
+
+        try:
+            with open(filepath, "w", encoding="utf-8") as f:
+                for line in renamed:
+                    f.write(line + "\n")
+            print(f"✅ {filepath}: переименовано {len(renamed)} конфигов")
+        except Exception as e:
+            print(f"⚠️ Не удалось записать {filepath}: {e}")
+
+
 # ========= ОСНОВНОЙ ЦИКЛ =========
 async def main_cycle():
     global cycle_counter
@@ -2059,6 +2199,8 @@ async def main_cycle():
     
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, tester.run)
+
+    await rename_working_configs()
 
 
 async def run_forever():
