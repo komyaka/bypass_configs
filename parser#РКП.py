@@ -15,6 +15,7 @@ import urllib.parse
 import ssl
 import sys
 import argparse
+import configparser
 from typing import Optional
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -25,6 +26,20 @@ print(f"🚀 Запуск парсера...")
 print(f"📂 Текущая директория: {os.getcwd()}")
 print(f"🐍 Python версия: {sys.version}")
 
+# ========= КОНФИГУРАЦИЯ =========
+def load_config() -> configparser.ConfigParser:
+    """Загружает настройки из config.ini"""
+    config = configparser.ConfigParser()
+    config_file = Path('config.ini')
+    if config_file.exists():
+        config.read(config_file, encoding='utf-8')
+        print(f"⚙️ Загружена конфигурация из config.ini")
+    else:
+        print(f"⚠️ Файл config.ini не найден, используются значения по умолчанию")
+    return config
+
+_config = load_config()
+
 # ========= ФАЙЛЫ =========
 SOURCES_FILE = "sources.txt"
 OUTPUT_FILE = "url.txt"
@@ -33,6 +48,8 @@ FILTERED_FILE = "url_filtered.txt"
 NAMED_FILE = "url_named.txt"
 ENCODED_FILE = "url_encoded.txt"
 WORK_FILE = "url_work.txt"
+SPEED_FILE = "url_work_speed.txt"
+COMBINED_FILE = "url_combined.txt"
 LOG_FILE = "log.txt"
 PROCESSED_FILE = "processed.json"
 CACHE_FILE = "cache_results.json"
@@ -40,16 +57,18 @@ DEBUG_FILE = "debug_failed.txt"
 XRAY_LOG_FILE = "xray_errors.log"
 
 # ========= НАСТРОЙКИ =========
-THREADS_DOWNLOAD = 50
+THREADS_DOWNLOAD = _config.getint('threads', 'threads_download', fallback=50)
 CYCLE_DELAY = 3600
 LOG_CLEAN_INTERVAL = 86400
 CYCLES_BEFORE_DEBUG_CLEAN = 5  # Очистка debug_failed.txt каждые 5 циклов
 
-XRAY_MAX_WORKERS = 30  # Увеличено до 30 потоков
-XRAY_TEST_URL = "https://www.gstatic.com/generate_204"
-XRAY_TIMEOUT = 3  # Уменьшено до 3 секунд
+XRAY_MAX_WORKERS = _config.getint('threads', 'xray_max_workers', fallback=30)
+XRAY_TEST_URL = _config.get('speed', 'speed_test_url', fallback='https://www.gstatic.com/generate_204')
+XRAY_TIMEOUT = _config.getint('timeouts', 'xray_timeout', fallback=3)
 MAX_RETRIES = 2
 RETRY_DELAY = 1
+TOP_FAST_COUNT = _config.getint('speed', 'top_fast_count', fallback=30)
+SPEED_TEST_REQUESTS = _config.getint('speed', 'speed_test_requests', fallback=3)
 
 print(f"⚡ Настройки: XRAY_MAX_WORKERS={XRAY_MAX_WORKERS}, TIMEOUT={XRAY_TIMEOUT}")
 
@@ -1497,10 +1516,15 @@ class PortManager:
 
 
 class XrayTester:
-    def __init__(self, input_file='url_encoded.txt', output_file='url_work.txt', max_workers=30):
+    def __init__(self, input_file='url_encoded.txt', output_file='url_work.txt',
+                 speed_file='url_work_speed.txt', max_workers=30,
+                 top_fast_count=30, speed_test_requests=3):
         self.input_file = input_file
         self.output_file = output_file
+        self.speed_file = speed_file
         self.max_workers = max_workers
+        self.top_fast_count = top_fast_count
+        self.speed_test_requests = speed_test_requests
         
         self.test_url = XRAY_TEST_URL
         self.timeout = XRAY_TIMEOUT
@@ -1517,8 +1541,10 @@ class XrayTester:
         
         print(f"🔍 XrayTester инициализирован")
         print(f"   📁 Входной файл: {self.input_file}")
-        print(f"   📁 Выходной файл: {self.output_file}")
+        print(f"   📁 Рабочие адреса: {self.output_file}")
+        print(f"   📁 Быстрые адреса: {self.speed_file} (топ {self.top_fast_count})")
         print(f"   ⚡ Потоков: {self.max_workers}")
+        print(f"   📶 Запросов для замера скорости: {self.speed_test_requests}")
         
         self.check_xray()
         
@@ -1739,8 +1765,19 @@ class XrayTester:
             try:
                 r = session.get(self.test_url, timeout=self.timeout)
                 if r.status_code in [200, 204]:
-                    ping = (time.time() - start) * 1000
-                    return {'working': True, 'ping': ping, 'method': 'xray'}
+                    first_ping = (time.time() - start) * 1000
+                    # Дополнительные запросы для измерения средней задержки (в стиле xraycheck)
+                    pings = [first_ping]
+                    for _ in range(self.speed_test_requests - 1):
+                        try:
+                            t = time.time()
+                            r2 = session.get(self.test_url, timeout=self.timeout)
+                            if r2.status_code in [200, 204]:
+                                pings.append((time.time() - t) * 1000)
+                        except Exception:
+                            break
+                    avg_ping = sum(pings) / len(pings)
+                    return {'working': True, 'ping': avg_ping, 'method': 'xray'}
                 else:
                     return "FAIL"
             except requests.exceptions.Timeout:
@@ -1894,6 +1931,12 @@ class XrayTester:
             for w in working:
                 f.write(w['url'] + '\n')
         
+        # Сохраняем топ N самых быстрых адресов в отдельный файл (в стиле xraycheck)
+        top_fast = working[:self.top_fast_count]
+        with open(self.speed_file, 'w', encoding='utf-8') as f:
+            for w in top_fast:
+                f.write(w['url'] + '\n')
+        
         xray_working = sum(1 for w in working if w.get('method') == 'xray')
         alt_working = len(working) - xray_working
         
@@ -1902,6 +1945,7 @@ class XrayTester:
         print(f"      ├─ Через Xray: {xray_working}")
         print(f"      └─ Альтернативные методы: {alt_working}")
         print(f"   ❌ Не работает: {len(all_urls)-len(working)}")
+        print(f"   🚀 Топ {len(top_fast)} быстрых сохранено в {self.speed_file}")
         
         if os.path.exists(self.debug_file):
             debug_lines = sum(1 for _ in open(self.debug_file, 'r', encoding='utf-8'))
@@ -1968,18 +2012,53 @@ async def main_cycle():
         await filter_vless()
         await rename_configs()
         await encode_all_configs()
-
-        print("\n=== Запуск Xray-проверки ===")
-        tester = XrayTester(
-            input_file=ENCODED_FILE, 
-            output_file=WORK_FILE, 
-            max_workers=XRAY_MAX_WORKERS
-        )
-        
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, tester.run)
     else:
-        print("⏭️ Нет новых конфигов для обработки")
+        print("⏭️ Нет новых конфигов из источников, проверяем ранее найденные адреса")
+
+    # Объединяем новые конфиги с ранее работавшими адресами из url_work.txt и url_work_speed.txt
+    urls_to_test = []
+    url_keys_seen = set()
+
+    files_to_merge = []
+    if stats['found'] > 0 and os.path.exists(ENCODED_FILE):
+        files_to_merge.append(ENCODED_FILE)
+    files_to_merge.extend([WORK_FILE, SPEED_FILE])
+
+    for file_to_read in files_to_merge:
+        if os.path.exists(file_to_read):
+            try:
+                with open(file_to_read, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        url = line.strip()
+                        if url:
+                            url_key = url.split('#', 1)[0]
+                            if url_key not in url_keys_seen:
+                                url_keys_seen.add(url_key)
+                                urls_to_test.append(url)
+            except Exception as e:
+                print(f"⚠️ Ошибка чтения {file_to_read}: {e}")
+
+    if not urls_to_test:
+        print("⏭️ Нет конфигов для проверки")
+        return
+
+    print(f"\n📋 Итого для проверки: {len(urls_to_test)} конфигов")
+    with open(COMBINED_FILE, 'w', encoding='utf-8') as f:
+        for url in urls_to_test:
+            f.write(url + '\n')
+
+    print("\n=== Запуск Xray-проверки ===")
+    tester = XrayTester(
+        input_file=COMBINED_FILE,
+        output_file=WORK_FILE,
+        speed_file=SPEED_FILE,
+        max_workers=XRAY_MAX_WORKERS,
+        top_fast_count=TOP_FAST_COUNT,
+        speed_test_requests=SPEED_TEST_REQUESTS,
+    )
+    
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, tester.run)
 
 
 async def run_forever():
