@@ -19672,7 +19672,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19681,7 +19681,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19690,7 +19690,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19699,7 +19699,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19708,7 +19708,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19717,7 +19717,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19726,7 +19726,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19735,7 +19735,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19744,7 +19744,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19753,7 +19753,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19762,7 +19762,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19771,7 +19771,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19780,7 +19780,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19789,7 +19789,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19798,7 +19798,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19807,7 +19807,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19816,7 +19816,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19825,7 +19825,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19834,7 +19834,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19843,7 +19843,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19852,7 +19852,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19861,7 +19861,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19870,7 +19870,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19879,7 +19879,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19888,7 +19888,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19897,7 +19897,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19906,7 +19906,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19915,7 +19915,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19924,7 +19924,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19933,7 +19933,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19942,7 +19942,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -19951,7 +19951,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19960,7 +19960,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19969,7 +19969,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19978,7 +19978,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19987,7 +19987,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -19996,7 +19996,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -20005,7 +20005,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20014,7 +20014,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20023,7 +20023,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20032,7 +20032,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20041,7 +20041,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20050,7 +20050,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20059,7 +20059,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -20068,7 +20068,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20077,7 +20077,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20086,7 +20086,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20095,7 +20095,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -20104,7 +20104,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20113,7 +20113,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20122,7 +20122,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20131,7 +20131,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20140,7 +20140,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20149,7 +20149,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20158,7 +20158,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20167,7 +20167,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20176,7 +20176,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20185,7 +20185,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20194,7 +20194,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20203,7 +20203,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -20212,7 +20212,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20221,7 +20221,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20230,7 +20230,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20239,7 +20239,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20248,7 +20248,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20257,7 +20257,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20266,7 +20266,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20275,7 +20275,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20284,7 +20284,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20293,7 +20293,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20302,7 +20302,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20311,7 +20311,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20320,7 +20320,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20329,7 +20329,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20338,7 +20338,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20347,7 +20347,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20356,7 +20356,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20365,7 +20365,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20374,7 +20374,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20383,7 +20383,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -20392,7 +20392,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20401,7 +20401,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vmess",
       "last_error": "ERROR"
     },
@@ -20410,7 +20410,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vmess",
       "last_error": "ERROR"
     },
@@ -20419,7 +20419,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vmess",
       "last_error": "ERROR"
     },
@@ -20428,7 +20428,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vmess",
       "last_error": "ERROR"
     },
@@ -20437,7 +20437,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "ERROR"
     },
@@ -20446,7 +20446,7 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
-      "fail_streak": 1,
+      "fail_streak": 0,
       "protocol": "vless",
       "last_error": "CRASH_CRASH"
     },
@@ -20455,9 +20455,306 @@
       "first_seen": "2026-03-09T21:00:50Z",
       "last_seen": "2026-03-09T21:00:50Z",
       "fail_count": 1,
+      "fail_streak": 0,
+      "protocol": "vless",
+      "last_error": "ERROR"
+    },
+    "vless://805b5bb5-588e-4f27-8e43-5496317c3740@95.163.209.148:8081?encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c": {
+      "raw": "vless://805b5bb5-588e-4f27-8e43-5496317c3740@95.163.209.148:8081?encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://f971c435-5dac-4527-a345-392b4d23b0d7@185.130.114.10:8442?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=random&sni=api-maps.yandex.ru&pbk=TaMOLW0wrgU13SvRWpjnlCWMs6nsdoQAN3RcApyu3yk&spx=%252F": {
+      "raw": "vless://f971c435-5dac-4527-a345-392b4d23b0d7@185.130.114.10:8442?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=random&sni=api-maps.yandex.ru&pbk=TaMOLW0wrgU13SvRWpjnlCWMs6nsdoQAN3RcApyu3yk&spx=%252F#TCP%2C%20%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81%20%D0%9A%D0%B0%D1%80%D1%82%D1%8B%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://805b5bb5-588e-4f27-8e43-5496317c3740@51.250.45.245:8080?encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c": {
+      "raw": "vless://805b5bb5-588e-4f27-8e43-5496317c3740@51.250.45.245:8080?encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://54ef6124-3a61-4a44-9901-78fadc6c59d9@144.31.17.116:443/?type=tcp&encryption=none&flow=xtls-rprx-vision&sni=sun6-22.userapi.com&fp=chrome&security=reality&pbk=iAWzXE2vetDOtZePY7-Y64p5AY7h35eE3YnVSZM8LUw&sid=760f7a4c46859978": {
+      "raw": "vless://54ef6124-3a61-4a44-9901-78fadc6c59d9@144.31.17.116:443/?type=tcp&encryption=none&flow=xtls-rprx-vision&sni=sun6-22.userapi.com&fp=chrome&security=reality&pbk=iAWzXE2vetDOtZePY7-Y64p5AY7h35eE3YnVSZM8LUw&sid=760f7a4c46859978#TCP%2C%20VK%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://39638b78-3e27-4d9d-affa-ed13ce0c85b7@51.250.45.245:8181?type=tcp&security=reality&sni=max.ru&fp=chrome&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c": {
+      "raw": "vless://39638b78-3e27-4d9d-affa-ed13ce0c85b7@51.250.45.245:8181?type=tcp&security=reality&sni=max.ru&fp=chrome&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://3fdd04dc-e9fe-4706-9c07-72eb2b6c4be0@51.250.94.162:443?type=tcp&security=reality&sni=ads.x5.ru&fp=qq&flow=xtls-rprx-vision&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=17802e8ff84f12df": {
+      "raw": "vless://3fdd04dc-e9fe-4706-9c07-72eb2b6c4be0@51.250.94.162:443?type=tcp&security=reality&sni=ads.x5.ru&fp=qq&flow=xtls-rprx-vision&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=17802e8ff84f12df#TCP%2C%20%D0%9F%D1%8F%D1%82%D1%91%D1%80%D0%BE%D1%87%D0%BA%D0%B0%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://42191252-2937-404a-a982-04519c71e26a@51.250.5.137:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=api-maps.yandex.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=95ec618532fa065e&spx=%2F": {
+      "raw": "vless://42191252-2937-404a-a982-04519c71e26a@51.250.5.137:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=api-maps.yandex.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=95ec618532fa065e&spx=%2F#TCP%2C%20%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81%20%D0%9A%D0%B0%D1%80%D1%82%D1%8B%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
       "fail_streak": 1,
       "protocol": "vless",
       "last_error": "ERROR"
+    },
+    "vless://42191252-2937-404a-a982-04519c71e26a@185.241.194.74:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=3f200574d011010f&spx=%2F": {
+      "raw": "vless://42191252-2937-404a-a982-04519c71e26a@185.241.194.74:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=3f200574d011010f&spx=%2F#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "ERROR"
+    },
+    "vless://54ef6124-3a61-4a44-9901-78fadc6c59d9@144.31.17.116:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=sun6-22.userapi.com&pbk=iAWzXE2vetDOtZePY7-Y64p5AY7h35eE3YnVSZM8LUw&sid=760f7a4c46859978": {
+      "raw": "vless://54ef6124-3a61-4a44-9901-78fadc6c59d9@144.31.17.116:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=sun6-22.userapi.com&pbk=iAWzXE2vetDOtZePY7-Y64p5AY7h35eE3YnVSZM8LUw&sid=760f7a4c46859978#TCP%2C%20VK%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://42191252-2937-404a-a982-04519c71e26a@185.241.192.21:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=43df3983229a1c73&spx=%252F": {
+      "raw": "vless://42191252-2937-404a-a982-04519c71e26a@185.241.192.21:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=43df3983229a1c73&spx=%252F#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://42191252-2937-404a-a982-04519c71e26a@51.250.5.137:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=api-maps.yandex.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=d17bd238f23fba92&spx=%252F": {
+      "raw": "vless://42191252-2937-404a-a982-04519c71e26a@51.250.5.137:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=api-maps.yandex.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=d17bd238f23fba92&spx=%252F#TCP%2C%20%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81%20%D0%9A%D0%B0%D1%80%D1%82%D1%8B%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://8e818ed9-2545-4221-b726-01d44e808513@146.185.243.8:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=cd57a927f6b72d81&spx=%252F": {
+      "raw": "vless://8e818ed9-2545-4221-b726-01d44e808513@146.185.243.8:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=cd57a927f6b72d81&spx=%252F#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://c67f81df-34e8-4cb3-ab43-599585775fa9@51.250.68.90:443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&fp=qq&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=2476f063981ffd92&sni=ads.x5.ru": {
+      "raw": "vless://c67f81df-34e8-4cb3-ab43-599585775fa9@51.250.68.90:443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&fp=qq&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=2476f063981ffd92&sni=ads.x5.ru#TCP%2C%20%D0%9F%D1%8F%D1%82%D1%91%D1%80%D0%BE%D1%87%D0%BA%D0%B0%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "ERROR"
+    },
+    "vless://42191252-2937-404a-a982-04519c71e26a@51.250.72.243:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=ads.x5.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=2476f063981ffd92&spx=%252F": {
+      "raw": "vless://42191252-2937-404a-a982-04519c71e26a@51.250.72.243:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=ads.x5.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=2476f063981ffd92&spx=%252F#TCP%2C%20%D0%9F%D1%8F%D1%82%D1%91%D1%80%D0%BE%D1%87%D0%BA%D0%B0%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://42191252-2937-404a-a982-04519c71e26a@51.250.72.243:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=ads.x5.ru&fp=qq&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=4a3ad88ff867a295&spx=%252F&type=tcp&headerType=none": {
+      "raw": "vless://42191252-2937-404a-a982-04519c71e26a@51.250.72.243:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=ads.x5.ru&fp=qq&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=4a3ad88ff867a295&spx=%252F&type=tcp&headerType=none#TCP%2C%20%D0%9F%D1%8F%D1%82%D1%91%D1%80%D0%BE%D1%87%D0%BA%D0%B0%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://42191252-2937-404a-a982-04519c71e26a@51.250.72.243:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=ads.x5.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=6354585c37827955&spx=%252F": {
+      "raw": "vless://42191252-2937-404a-a982-04519c71e26a@51.250.72.243:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=ads.x5.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=6354585c37827955&spx=%252F#TCP%2C%20%D0%9F%D1%8F%D1%82%D1%91%D1%80%D0%BE%D1%87%D0%BA%D0%B0%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://379a2c6c-1b7d-4796-9e8c-ddfeedb31c3b@51.250.40.245:8443?encryption=none&security=reality&sni=eh.vk.com&fp=qq&pbk=J5ITJbg5FQFembAfkogKHHQB6DigsFXQxK7xu-QMWUs&sid=6b2f4e6ac9b1d2f0&type=grpc&authority=&serviceName=grpc&mode=gun": {
+      "raw": "vless://379a2c6c-1b7d-4796-9e8c-ddfeedb31c3b@51.250.40.245:8443?encryption=none&security=reality&sni=eh.vk.com&fp=qq&pbk=J5ITJbg5FQFembAfkogKHHQB6DigsFXQxK7xu-QMWUs&sid=6b2f4e6ac9b1d2f0&type=grpc&authority=&serviceName=grpc&mode=gun#gRPC%2C%20VK%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "ERROR"
+    },
+    "vless://c67f81df-34e8-4cb3-ab43-599585775fa9@45.145.40.26:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=de.jojack.ru&pbk=ca5sfJNcjkh3oNt51hRexXbGWgITAqCprGSU-YKCJBA&sid=cf83b881a9613059&spx=%252F": {
+      "raw": "vless://c67f81df-34e8-4cb3-ab43-599585775fa9@45.145.40.26:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=de.jojack.ru&pbk=ca5sfJNcjkh3oNt51hRexXbGWgITAqCprGSU-YKCJBA&sid=cf83b881a9613059&spx=%252F#TCP%2C%20JoJack%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://8e818ed9-2545-4221-b726-01d44e808513@146.185.243.8:443?encryption=none&flow=xtls-rprx-vision&fp=chrome&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&security=reality&sid=87cc0414902bee2d&sni=web.max.ru&type=tcp": {
+      "raw": "vless://8e818ed9-2545-4221-b726-01d44e808513@146.185.243.8:443?encryption=none&flow=xtls-rprx-vision&fp=chrome&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&security=reality&sid=87cc0414902bee2d&sni=web.max.ru&type=tcp#Reality%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://a66f46d2-3804-4034-973d-2b4b5e7455aa@51.250.0.17:443?encryption=none&security=reality&sni=api-maps.yandex.ru&fp=chrome&pbk=R2AoFf_0D5ZOIO566N-RQL-vTIzEAQ7nci6xytQjfXE&sid=0a381e1fa211&type=xhttp&path=%252F&mode=auto": {
+      "raw": "vless://a66f46d2-3804-4034-973d-2b4b5e7455aa@51.250.0.17:443?encryption=none&security=reality&sni=api-maps.yandex.ru&fp=chrome&pbk=R2AoFf_0D5ZOIO566N-RQL-vTIzEAQ7nci6xytQjfXE&sid=0a381e1fa211&type=xhttp&path=%252F&mode=auto#XHTTP%2C%20%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81%20%D0%9A%D0%B0%D1%80%D1%82%D1%8B%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "ERROR"
+    },
+    "vless://805b5bb5-588e-4f27-8e43-5496317c3740@178.154.197.171:8444?encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c": {
+      "raw": "vless://805b5bb5-588e-4f27-8e43-5496317c3740@178.154.197.171:8444?encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://42191252-2937-404a-a982-04519c71e26a@51.250.72.243:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=api-maps.yandex.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=17802e8ff84f12df": {
+      "raw": "vless://42191252-2937-404a-a982-04519c71e26a@51.250.72.243:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=api-maps.yandex.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=17802e8ff84f12df#TCP%2C%20%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81%20%D0%9A%D0%B0%D1%80%D1%82%D1%8B%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://805b5bb5-588e-4f27-8e43-5496317c3740@95.163.210.30:8083?encryption=none&type=tcp&security=reality&fp=qq&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c": {
+      "raw": "vless://805b5bb5-588e-4f27-8e43-5496317c3740@95.163.210.30:8083?encryption=none&type=tcp&security=reality&fp=qq&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://3fdd04dc-e9fe-4706-9c07-72eb2b6c4be0@95.163.212.234:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=web.max.ru&fp=qq&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=17802e8ff84f12df&spx=%252F&type=tcp&headerType=none": {
+      "raw": "vless://3fdd04dc-e9fe-4706-9c07-72eb2b6c4be0@95.163.212.234:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=web.max.ru&fp=qq&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=17802e8ff84f12df&spx=%252F&type=tcp&headerType=none#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://805b5bb5-588e-4f27-8e43-5496317c3740@95.163.210.30:8083?encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c": {
+      "raw": "vless://805b5bb5-588e-4f27-8e43-5496317c3740@95.163.210.30:8083?encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://805b5bb5-588e-4f27-8e43-5496317c3740@95.163.209.148:8083?encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c": {
+      "raw": "vless://805b5bb5-588e-4f27-8e43-5496317c3740@95.163.209.148:8083?encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=Z84J2IelR9ch3k8VtlVhhs5ycBUlXA7wHBWcBrjqnAw&sid=7dbf7d3233971d5c#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://3869fc33-e355-4469-b150-29d66044edc8@51.250.6.105:8449?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=max.ru&pbk=eWc4OGy6tScPuAS_MCVSrFpqJRj1uC9f1gh6YLc332M&spx=%252F": {
+      "raw": "vless://3869fc33-e355-4469-b150-29d66044edc8@51.250.6.105:8449?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=max.ru&pbk=eWc4OGy6tScPuAS_MCVSrFpqJRj1uC9f1gh6YLc332M&spx=%252F#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://42191252-2937-404a-a982-04519c71e26a@185.241.194.74:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=web.max.ru&fp=qq&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=048fe5c8be4bb687&spx=%252F&type=tcp&headerType=none": {
+      "raw": "vless://42191252-2937-404a-a982-04519c71e26a@185.241.194.74:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=web.max.ru&fp=qq&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=048fe5c8be4bb687&spx=%252F&type=tcp&headerType=none#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://8e818ed9-2545-4221-b726-01d44e808513@51.250.72.243:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=api-maps.yandex.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=d17bd238f23fba92&spx=%252F": {
+      "raw": "vless://8e818ed9-2545-4221-b726-01d44e808513@51.250.72.243:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=api-maps.yandex.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=d17bd238f23fba92&spx=%252F#TCP%2C%20%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81%20%D0%9A%D0%B0%D1%80%D1%82%D1%8B%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://3fdd04dc-e9fe-4706-9c07-72eb2b6c4be0@95.163.212.234:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=e55fd8f9c9a9a0ca&spx=%252F": {
+      "raw": "vless://3fdd04dc-e9fe-4706-9c07-72eb2b6c4be0@95.163.212.234:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=e55fd8f9c9a9a0ca&spx=%252F#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://42191252-2937-404a-a982-04519c71e26a@51.250.5.137:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=ads.x5.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=4b523a98e1bbd15b&spx=%252F": {
+      "raw": "vless://42191252-2937-404a-a982-04519c71e26a@51.250.5.137:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=ads.x5.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=4b523a98e1bbd15b&spx=%252F#TCP%2C%20%D0%9F%D1%8F%D1%82%D1%91%D1%80%D0%BE%D1%87%D0%BA%D0%B0%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://c67f81df-34e8-4cb3-ab43-599585775fa9@87.239.109.55:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=3f200574d011010f": {
+      "raw": "vless://c67f81df-34e8-4cb3-ab43-599585775fa9@87.239.109.55:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=3f200574d011010f#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
+    },
+    "vless://3fdd04dc-e9fe-4706-9c07-72eb2b6c4be0@95.163.212.234:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=c8597fb67d55d9c4": {
+      "raw": "vless://3fdd04dc-e9fe-4706-9c07-72eb2b6c4be0@95.163.212.234:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=web.max.ru&pbk=FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg&sid=c8597fb67d55d9c4#TCP%2C%20Max%20%5B%23%D0%A0%D0%9A%D0%9F%5D",
+      "first_seen": "2026-03-09T21:32:47Z",
+      "last_seen": "2026-03-09T21:32:47Z",
+      "fail_count": 1,
+      "fail_streak": 1,
+      "protocol": "vless",
+      "last_error": "CRASH_CRASH"
     }
   }
 }
