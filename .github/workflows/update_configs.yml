@@ -7,6 +7,9 @@ on:
   workflow_dispatch:
     # Ручной запуск через интерфейс GitHub
 
+permissions:
+  contents: write
+
 jobs:
   update-configs:
     name: Парсинг и обновление конфигов
