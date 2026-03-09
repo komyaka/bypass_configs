@@ -80,6 +80,9 @@ MAX_RETRIES = 2
 RETRY_DELAY = 1
 TOP_FAST_COUNT = _config.getint('speed', 'top_fast_count', fallback=30)
 SPEED_TEST_REQUESTS = _config.getint('speed', 'speed_test_requests', fallback=3)
+STRONG_STYLE_ATTEMPTS = _config.getint('speed', 'strong_style_attempts', fallback=3)
+STRONG_STYLE_TIMEOUT = _config.getint('speed', 'strong_style_timeout', fallback=12)
+STRONG_MAX_RESPONSE_TIME = _config.getint('speed', 'strong_max_response_time', fallback=3)
 
 NOTWORKERS_ENABLED = _config.getboolean('notworkers', 'notworkers_enabled', fallback=True)
 NOTWORKERS_TTL_DAYS = _config.getint('notworkers', 'notworkers_ttl_days', fallback=7)
@@ -1897,6 +1900,9 @@ class XrayTester:
         self.max_workers = max_workers
         self.top_fast_count = top_fast_count
         self.speed_test_requests = speed_test_requests
+        self.strong_style_attempts = STRONG_STYLE_ATTEMPTS
+        self.strong_style_timeout = STRONG_STYLE_TIMEOUT
+        self.strong_max_response_time = STRONG_MAX_RESPONSE_TIME
         
         self.test_url = XRAY_TEST_URL
         self.timeout = XRAY_TIMEOUT
@@ -2454,27 +2460,62 @@ class XrayTester:
             
             start = time.time()
             session = requests.Session()
-            session.proxies = {'https': f'socks5://127.0.0.1:{port}'}
+            session.proxies = {
+                'http': f'socks5h://127.0.0.1:{port}',
+                'https': f'socks5h://127.0.0.1:{port}'
+            }
             session.timeout = self.timeout
             
             try:
-                r = session.get(self.test_url, timeout=self.timeout)
+                # Для VLESS используем строгий стиль проверки как в xraycheck:
+                # несколько подряд запросов к generate_204 с ограничением по времени ответа.
+                if parsed.get('protocol') == 'vless':
+                    connect_timeout = max(3, min(10, int(self.strong_style_timeout * 0.4)))
+                    read_timeout = max(5, self.strong_style_timeout - connect_timeout)
+                    timeout_strong = (connect_timeout, read_timeout)
+                    attempts_needed = max(1, self.strong_style_attempts)
+                    pings = []
+
+                    for attempt in range(attempts_needed):
+                        if attempt > 0:
+                            time.sleep(0.5)
+                        t = time.time()
+                        r = session.get(
+                            self.test_url,
+                            timeout=timeout_strong,
+                            allow_redirects=False,
+                            verify=False
+                        )
+                        elapsed = time.time() - t
+
+                        if r.status_code not in [200, 204]:
+                            return "FAIL"
+                        if len(r.content) > 64:
+                            return "FAIL"
+                        if self.strong_max_response_time > 0 and elapsed > self.strong_max_response_time:
+                            return "TIMEOUT"
+
+                        pings.append(elapsed * 1000)
+
+                    avg_ping = sum(pings) / len(pings)
+                    return {'working': True, 'ping': avg_ping, 'method': 'xray'}
+
+                # Для остальных протоколов сохраняем прежнюю логику.
+                r = session.get(self.test_url, timeout=self.timeout, allow_redirects=False, verify=False)
                 if r.status_code in [200, 204]:
                     first_ping = (time.time() - start) * 1000
-                    # Дополнительные запросы для измерения средней задержки (в стиле xraycheck)
                     pings = [first_ping]
                     for _ in range(self.speed_test_requests - 1):
                         try:
                             t = time.time()
-                            r2 = session.get(self.test_url, timeout=self.timeout)
+                            r2 = session.get(self.test_url, timeout=self.timeout, allow_redirects=False, verify=False)
                             if r2.status_code in [200, 204]:
                                 pings.append((time.time() - t) * 1000)
                         except Exception:
                             break
                     avg_ping = sum(pings) / len(pings)
                     return {'working': True, 'ping': avg_ping, 'method': 'xray'}
-                else:
-                    return "FAIL"
+                return "FAIL"
             except requests.exceptions.Timeout:
                 return "TIMEOUT"
             except requests.exceptions.ConnectionError as e:

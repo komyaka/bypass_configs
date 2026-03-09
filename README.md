@@ -82,6 +82,9 @@ python parser.py --once
 | `threads_download` | `50` | Параллельных потоков для скачивания |
 | `xray_max_workers` | `30` | Параллельных потоков для Xray-тестирования |
 | `xray_timeout` | `3` | Таймаут теста конфига (секунды) |
+| `strong_style_attempts` | `3` | Для VLESS: сколько подряд успешных запросов к `generate_204` требуется |
+| `strong_style_timeout` | `12` | Для VLESS: таймаут одного запроса в строгом режиме (секунды) |
+| `strong_max_response_time` | `3` | Для VLESS: максимальное допустимое время ответа (секунды) |
 | `notworkers_enabled` | `true` | Включить/отключить чёрный список |
 | `notworkers_ttl_days` | `7` | Срок хранения записи в чёрном списке (дни) |
 
