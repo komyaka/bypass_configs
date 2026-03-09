@@ -38,11 +38,14 @@ jobs:
       - name: Копирование результатов в папку configs
         shell: pwsh
         run: |
-          if (Test-Path "url_work.txt") {
-            Copy-Item "url_work.txt" "configs\url_work.txt" -Force
-            Write-Host "✅ url_work.txt скопирован"
-          } else {
-            Write-Host "⚠️ url_work.txt не найден"
+          $files = @("url_work.txt", "url_work_speed.txt")
+          foreach ($file in $files) {
+            if (Test-Path $file) {
+              Copy-Item $file "configs\$file" -Force
+              Write-Host "✅ $file скопирован"
+            } else {
+              Write-Host "⚠️ $file не найден"
+            }
           }
 
       - name: Публикация результатов в репозиторий
@@ -50,7 +53,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add configs/url_work.txt
+          git add configs/url_work.txt configs/url_work_speed.txt
           $changes = git status --porcelain
           if ($changes) {
             $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd HH:mm") + " UTC"
