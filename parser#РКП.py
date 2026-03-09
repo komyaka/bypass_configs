@@ -9,12 +9,13 @@ import subprocess
 import tempfile
 import requests
 import threading
-import hashlib
 import socket
 import random
 import urllib.parse
 import ssl
 import sys
+import argparse
+from typing import Optional
 from datetime import datetime, timedelta
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -973,7 +974,7 @@ def detect_protocol(vless_url: str) -> str:
         return "Неизвестно"
 
 
-def extract_sni_or_host(vless_url: str) -> str | None:
+def extract_sni_or_host(vless_url: str) -> Optional[str]:
     """Извлекает SNI или host из VLESS URL"""
     try:
         if not vless_url.startswith("vless://"):
@@ -1092,31 +1093,16 @@ def get_human_name(domain: str) -> str:
     """Определяет человеко-читаемое название по домену из словаря DOMAIN_NAMES"""
     if not domain:
         return "Неизвестно"
-    
+
     d = domain.lower()
-    
-    # Прямое совпадение
-    if d in DOMAIN_NAMES:
-        return DOMAIN_NAMES[d]
-    
-    # Проверяем поддомены
     parts = d.split('.')
+
+    # Проверяем от полного домена до базового (sub.example.com → example.com)
     for i in range(len(parts) - 1):
         sub = ".".join(parts[i:])
         if sub in DOMAIN_NAMES:
             return DOMAIN_NAMES[sub]
-    
-    # Проверяем основной домен (например, yandex.ru из ya.ru)
-    if len(parts) >= 2:
-        base = ".".join(parts[-2:])
-        if base in DOMAIN_NAMES:
-            return DOMAIN_NAMES[base]
-    
-    # Проверяем окончания
-    for key in DOMAIN_NAMES:
-        if d.endswith("." + key):
-            return DOMAIN_NAMES[key]
-    
+
     return "Неизвестно"
 
 
@@ -1131,38 +1117,26 @@ def filter_by_sni(vless_url: str, whitelist_domains: set, whitelist_suffixes: li
     for domain in domains:
         if domain in whitelist_domains:
             return True
-        
+
         for suffix in whitelist_suffixes:
             if domain.endswith(suffix):
                 return True
-        
+
         parts = domain.split('.')
         if len(parts) >= 2:
             base_domain = '.'.join(parts[-2:])
             if base_domain in whitelist_domains:
                 return True
-    
+
     # Если whitelist пуст, используем DOMAIN_NAMES
     if not whitelist_domains:
         for domain in domains:
-            if domain in DOMAIN_NAMES:
-                return True
-            
             parts = domain.split('.')
             for i in range(len(parts) - 1):
                 sub = ".".join(parts[i:])
                 if sub in DOMAIN_NAMES:
                     return True
-            
-            if len(parts) >= 2:
-                base = ".".join(parts[-2:])
-                if base in DOMAIN_NAMES:
-                    return True
-            
-            for key in DOMAIN_NAMES:
-                if domain.endswith("." + key):
-                    return True
-    
+
     return False
 
 
@@ -1171,7 +1145,7 @@ async def fetch(session, url, sem):
     async with sem:
         try:
             print(f"Скачиваю: {url}")
-            async with session.get(url, timeout=15) as resp:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
                 if resp.status == 200:
                     return await resp.text()
         except Exception as e:
@@ -1217,8 +1191,12 @@ async def clean_vless():
 
     for line in lines:
         url = line.strip()
-        if url and url not in unique and validate_vless(url):
-            unique.add(url)
+        if not url or not validate_vless(url):
+            continue
+        # Deduplicate by URL without the fragment (name) part
+        url_key = url.split("#", 1)[0]
+        if url_key not in unique:
+            unique.add(url_key)
             valid.append(url)
 
     async with aiofiles.open(CLEAN_FILE, "w", encoding="utf-8") as f:
@@ -1963,7 +1941,7 @@ async def main_cycle():
 
     try:
         with open(SOURCES_FILE, "r", encoding="utf-8", errors="ignore") as f:
-            urls = [line.strip() for line in f if line.strip()]
+            urls = [line.strip() for line in f if line.strip() and not line.strip().startswith("#")]
     except:
         print(f"❌ Ошибка чтения {SOURCES_FILE}")
         return
@@ -2024,8 +2002,19 @@ async def run_forever():
 
 
 if __name__ == "__main__":
+    parser_args = argparse.ArgumentParser(description="Парсер VLESS-конфигов #РКП")
+    parser_args.add_argument(
+        "--once",
+        action="store_true",
+        help="Выполнить один цикл и завершить (используется в GitHub Actions)"
+    )
+    args = parser_args.parse_args()
+
     try:
-        asyncio.run(run_forever())
+        if args.once:
+            asyncio.run(main_cycle())
+        else:
+            asyncio.run(run_forever())
     except KeyboardInterrupt:
         print("\n👋 Программа остановлена")
     except Exception as e:

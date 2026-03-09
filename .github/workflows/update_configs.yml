@@ -1,0 +1,62 @@
+name: Обновление конфигов VPN
+
+on:
+  schedule:
+    # Запуск каждые 6 часов (в 0:00, 6:00, 12:00, 18:00 UTC)
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    # Ручной запуск через интерфейс GitHub
+
+permissions:
+  contents: write
+
+jobs:
+  update-configs:
+    name: Парсинг и обновление конфигов
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Клонирование репозитория
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Установка Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Установка зависимостей
+        run: pip install -r requirements.txt
+
+      - name: Запуск парсера (один цикл)
+        run: python "parser#РКП.py" --once
+        timeout-minutes: 75
+
+      - name: Копирование результатов в папку configs
+        shell: pwsh
+        run: |
+          if (Test-Path "url_work.txt") {
+            Copy-Item "url_work.txt" "configs\url_work.txt" -Force
+            Write-Host "✅ url_work.txt скопирован"
+          } else {
+            Write-Host "⚠️ url_work.txt не найден"
+          }
+
+      - name: Публикация результатов в репозиторий
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add configs/url_work.txt
+          $changes = git status --porcelain
+          if ($changes) {
+            $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd HH:mm") + " UTC"
+            git commit -m "auto: обновление конфигов [$date]"
+            git push
+            Write-Host "✅ Конфиги обновлены и опубликованы"
+          } else {
+            Write-Host "ℹ️ Новых конфигов нет, коммит не нужен"
+          }
