@@ -15,6 +15,9 @@ jobs:
     name: Парсинг и обновление конфигов
     runs-on: windows-latest
     timeout-minutes: 30
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: 1
 
     steps:
       - name: Клонирование репозитория
