@@ -76,8 +76,9 @@ CYCLES_BEFORE_DEBUG_CLEAN = 5  # Очистка debug_failed.txt каждые 5 
 XRAY_MAX_WORKERS = _config.getint('threads', 'xray_max_workers', fallback=30)
 XRAY_TEST_URL = _config.get('speed', 'speed_test_url', fallback='https://www.gstatic.com/generate_204')
 XRAY_TIMEOUT = _config.getint('timeouts', 'xray_timeout', fallback=3)
-MAX_RETRIES = 2
-RETRY_DELAY = 1
+MAX_RETRIES = _config.getint('retry', 'max_retries', fallback=3)
+RETRY_DELAY_BASE = _config.getfloat('retry', 'retry_delay_base', fallback=1.0)
+RETRY_DELAY_MULTIPLIER = _config.getfloat('retry', 'retry_delay_multiplier', fallback=2.0)
 TOP_FAST_COUNT = _config.getint('speed', 'top_fast_count', fallback=30)
 SPEED_TEST_REQUESTS = _config.getint('speed', 'speed_test_requests', fallback=3)
 STRONG_STYLE_ATTEMPTS = _config.getint('speed', 'strong_style_attempts', fallback=3)
@@ -93,6 +94,23 @@ GENERATE_204_MAX_CONTENT_LENGTH = 64
 
 NOTWORKERS_ENABLED = _config.getboolean('notworkers', 'notworkers_enabled', fallback=True)
 NOTWORKERS_TTL_DAYS = _config.getint('notworkers', 'notworkers_ttl_days', fallback=7)
+NOTWORKERS_MIN_FAILS = _config.getint('notworkers', 'notworkers_min_fails', fallback=2)
+
+# Проверка стабильности
+STABILITY_CHECKS = _config.getint('stability', 'stability_checks', fallback=2)
+STABILITY_DELAY = _config.getfloat('stability', 'stability_delay', fallback=1.0)
+
+# Геолокация
+CHECK_GEOLOCATION = _config.getboolean('geolocation', 'check_geolocation', fallback=False)
+_allowed_countries_raw = _config.get('geolocation', 'allowed_countries', fallback='')
+ALLOWED_COUNTRIES = [c.strip().upper() for c in _allowed_countries_raw.split(',') if c.strip()]
+GEOLOCATION_TIMEOUT = _config.getint('geolocation', 'geolocation_timeout', fallback=5)
+
+# Строгий режим (для протоколов кроме VLESS, у которых уже есть сильный стиль)
+STRICT_MODE = _config.getboolean('strict', 'strict_mode', fallback=False)
+STRICT_ATTEMPTS = _config.getint('strict', 'strict_attempts', fallback=3)
+STRICT_MAX_RESPONSE_TIME = _config.getfloat('strict', 'strict_max_response_time', fallback=3.0)
+STRICT_TIMEOUT = _config.getint('strict', 'strict_timeout', fallback=12)
 
 print(f"⚡ Настройки: XRAY_MAX_WORKERS={XRAY_MAX_WORKERS}, TIMEOUT={XRAY_TIMEOUT}")
 
@@ -1857,9 +1875,16 @@ def save_notworkers(filepath: str, notworkers: dict):
     except Exception as e:
         print(f"⚠️ Ошибка сохранения чёрного списка: {e}")
 
-def update_notworkers(notworkers: dict, failed_urls: list, working_urls: list) -> dict:
-    """Обновляет чёрный список: добавляет нерабочие, удаляет ожившие"""
+def update_notworkers(notworkers: dict, failed_urls: list, working_urls: list,
+                      failed_errors: dict = None, notworkers_min_fails: int = 1) -> dict:
+    """Обновляет чёрный список: добавляет нерабочие, удаляет ожившие.
+
+    failed_errors: dict {url: last_error} — причины провала для каждого URL.
+    notworkers_min_fails: минимальное число последовательных провалов для подтверждения.
+    """
     now_str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    if failed_errors is None:
+        failed_errors = {}
 
     # Удаляем ожившие конфиги
     working_normalized = {normalize_vless_url(url) for url in working_urls}
@@ -1879,9 +1904,13 @@ def update_notworkers(notworkers: dict, failed_urls: list, working_urls: list) -
         if not key:
             continue
         proto = get_protocol_type(url)
+        last_error = failed_errors.get(url)
         if key in notworkers:
             notworkers[key]['last_seen'] = now_str
             notworkers[key]['fail_count'] = notworkers[key].get('fail_count', 1) + 1
+            notworkers[key]['fail_streak'] = notworkers[key].get('fail_streak', 1) + 1
+            if last_error:
+                notworkers[key]['last_error'] = last_error
             updated += 1
         else:
             notworkers[key] = {
@@ -1889,11 +1918,31 @@ def update_notworkers(notworkers: dict, failed_urls: list, working_urls: list) -
                 'first_seen': now_str,
                 'last_seen': now_str,
                 'fail_count': 1,
+                'fail_streak': 1,
                 'protocol': proto
             }
+            if last_error:
+                notworkers[key]['last_error'] = last_error
             added += 1
 
-    print(f"📊 Чёрный список: +{added} новых, ~{updated} обновлено, -{removed} ожило | Всего: {len(notworkers)}")
+    # Сбрасываем fail_streak для URL, которые перестали падать (но не стали рабочими).
+    # Записи с fail_streak=0 остаются в словаре (для истории fail_count),
+    # но не блокируются при следующем цикле (fail_streak < notworkers_min_fails).
+    failed_normalized = {normalize_vless_url(url) for url in failed_urls}
+    all_tested_normalized = failed_normalized | working_normalized
+    for key in list(notworkers.keys()):
+        if key in working_normalized:
+            continue  # уже удалены выше
+        if key not in all_tested_normalized:
+            # URL не тестировался в этом цикле — сбрасываем streak
+            notworkers[key]['fail_streak'] = 0
+
+    confirmed = sum(
+        1 for e in notworkers.values()
+        if e.get('fail_streak', 0) >= notworkers_min_fails
+    )
+    print(f"📊 Чёрный список: +{added} новых, ~{updated} обновлено, -{removed} ожило | "
+          f"Всего: {len(notworkers)} (подтверждено: {confirmed})")
     return notworkers
 
 
@@ -1914,7 +1963,28 @@ class XrayTester:
         self.test_url = XRAY_TEST_URL
         self.timeout = XRAY_TIMEOUT
         self.max_retries = MAX_RETRIES
-        self.retry_delay = RETRY_DELAY
+        self.retry_delay = RETRY_DELAY_BASE  # оставляем для обратной совместимости
+        self.retry_delay_base = RETRY_DELAY_BASE
+        self.retry_delay_multiplier = RETRY_DELAY_MULTIPLIER
+
+        # Проверка стабильности
+        self.stability_checks = STABILITY_CHECKS
+        self.stability_delay = STABILITY_DELAY
+
+        # Геолокация
+        self.geo_enabled = CHECK_GEOLOCATION
+        self.allowed_countries = ALLOWED_COUNTRIES
+        self.geolocation_timeout = GEOLOCATION_TIMEOUT
+
+        # Строгий режим
+        self.strict_mode = STRICT_MODE
+        self.strict_attempts = STRICT_ATTEMPTS
+        self.strict_max_response_time = STRICT_MAX_RESPONSE_TIME
+        self.strict_timeout = STRICT_TIMEOUT
+
+        # Счётчик ошибок по URL (thread-safe) для notworkers
+        self._url_last_errors: dict = {}
+        self._url_errors_lock = threading.Lock()
         
         self.xray_dir = Path('./xray_bin')
         if sys.platform == 'win32':
@@ -2486,8 +2556,8 @@ class XrayTester:
                     attempts_needed = max(1, self.strong_style_attempts)
                     pings = []
 
-                    for attempt in range(attempts_needed):
-                        if attempt > 0:
+                    for i in range(attempts_needed):
+                        if i > 0:
                             time.sleep(STRONG_ATTEMPT_DELAY)
                         t = time.time()
                         r = session.get(
@@ -2510,9 +2580,79 @@ class XrayTester:
                     if not pings:
                         return "FAIL"
                     avg_ping = sum(pings) / len(pings)
+
+                    # Проверки стабильности (общие для всех протоколов)
+                    if self.stability_checks > 0:
+                        for _ in range(self.stability_checks):
+                            time.sleep(self.stability_delay)
+                            try:
+                                t = time.time()
+                                rs = session.get(
+                                    self.test_url,
+                                    timeout=timeout_strong,
+                                    allow_redirects=False,
+                                    verify=False
+                                )
+                                if rs.status_code not in [200, 204]:
+                                    return "FAIL"
+                            except Exception:
+                                return "TIMEOUT"
+
                     return {'working': True, 'ping': avg_ping, 'method': 'xray'}
 
-                # Для остальных протоколов сохраняем прежнюю логику.
+                # Для остальных протоколов: строгий режим или обычная проверка.
+                if self.strict_mode:
+                    # Строгий режим: N последовательных запросов, все должны быть успешными
+                    connect_timeout = max(
+                        STRONG_CONNECT_TIMEOUT_MIN,
+                        min(STRONG_CONNECT_TIMEOUT_MAX, int(self.strict_timeout * STRONG_CONNECT_TIMEOUT_RATIO))
+                    )
+                    read_timeout = max(STRONG_READ_TIMEOUT_MIN, self.strict_timeout - connect_timeout)
+                    timeout_strict = (connect_timeout, read_timeout)
+                    strict_pings = []
+
+                    for i in range(max(1, self.strict_attempts)):
+                        if i > 0:
+                            time.sleep(STRONG_ATTEMPT_DELAY)
+                        t = time.time()
+                        r = session.get(
+                            self.test_url,
+                            timeout=timeout_strict,
+                            allow_redirects=False,
+                            verify=False
+                        )
+                        elapsed = time.time() - t
+
+                        if r.status_code not in [200, 204]:
+                            return "FAIL"
+                        if self.strict_max_response_time > 0 and elapsed > self.strict_max_response_time:
+                            return "TIMEOUT"
+                        strict_pings.append(elapsed * 1000)
+
+                    if not strict_pings:
+                        return "FAIL"
+                    avg_ping = sum(strict_pings) / len(strict_pings)
+
+                    # Проверки стабильности
+                    if self.stability_checks > 0:
+                        timeout_stab = (connect_timeout, read_timeout)
+                        for _ in range(self.stability_checks):
+                            time.sleep(self.stability_delay)
+                            try:
+                                rs = session.get(
+                                    self.test_url,
+                                    timeout=timeout_stab,
+                                    allow_redirects=False,
+                                    verify=False
+                                )
+                                if rs.status_code not in [200, 204]:
+                                    return "FAIL"
+                            except Exception:
+                                return "TIMEOUT"
+
+                    return {'working': True, 'ping': avg_ping, 'method': 'xray'}
+
+                # Обычная проверка (не строгий режим, не VLESS)
                 r = session.get(self.test_url, timeout=self.timeout, allow_redirects=False, verify=False)
                 if r.status_code in [200, 204]:
                     first_ping = (time.time() - start) * 1000
@@ -2526,6 +2666,23 @@ class XrayTester:
                         except Exception:
                             break
                     avg_ping = sum(pings) / len(pings)
+
+                    # Проверки стабильности
+                    if self.stability_checks > 0:
+                        for _ in range(self.stability_checks):
+                            time.sleep(self.stability_delay)
+                            try:
+                                rs = session.get(
+                                    self.test_url,
+                                    timeout=self.timeout,
+                                    allow_redirects=False,
+                                    verify=False
+                                )
+                                if rs.status_code not in [200, 204]:
+                                    return "FAIL"
+                            except Exception:
+                                return "TIMEOUT"
+
                     return {'working': True, 'ping': avg_ping, 'method': 'xray'}
                 return "FAIL"
             except requests.exceptions.Timeout:
@@ -2551,6 +2708,30 @@ class XrayTester:
                     os.remove(config_file)
                 except: 
                     pass
+
+    def check_geolocation(self, port) -> dict:
+        """Проверяет геолокацию через Xray-прокси (ip-api.com)"""
+        try:
+            session = requests.Session()
+            session.proxies = {
+                'http': f'socks5h://127.0.0.1:{port}',
+                'https': f'socks5h://127.0.0.1:{port}'
+            }
+            r = session.get(
+                'https://ip-api.com/json/?fields=status,country,countryCode',
+                timeout=self.geolocation_timeout,
+                allow_redirects=False
+            )
+            if r.status_code == 200:
+                data = r.json()
+                if data.get('status') == 'success':
+                    return {
+                        'country': data.get('country', ''),
+                        'country_code': data.get('countryCode', '')
+                    }
+        except Exception:
+            pass
+        return {}
 
     def check_alternative_methods(self, parsed, url):
         """Проверяет конфиг альтернативными методами"""
@@ -2607,40 +2788,67 @@ class XrayTester:
             return None
 
         port = self.port_manager.get_port()
+        last_error = None
         if port:
             try:
                 for attempt in range(1, self.max_retries + 1):
                     result = self.test_with_xray(parsed, port, attempt)
 
                     if isinstance(result, dict) and result.get('working'):
+                        # Проверка геолокации (если включена)
+                        geo_info = {}
+                        if self.geo_enabled:
+                            geo_info = self.check_geolocation(port)
+                            if geo_info and self.allowed_countries:
+                                code = geo_info.get('country_code', '')
+                                if code not in self.allowed_countries:
+                                    last_error = f"GEOLOCATION_FILTERED:{code}"
+                                    with self._url_errors_lock:
+                                        self._url_last_errors[url] = last_error
+                                    with open(self.debug_file, 'a', encoding='utf-8') as f:
+                                        f.write(f"{last_error}: {url}\n")
+                                    break
+
                         self.port_manager.release_port(port)
-                        return {'url': url, 'ping': result['ping'], 'method': 'xray'}
+                        res = {'url': url, 'ping': result['ping'], 'method': 'xray'}
+                        if geo_info:
+                            res['country'] = geo_info.get('country', '')
+                            res['country_code'] = geo_info.get('country_code', '')
+                        return res
 
-                    elif isinstance(result, str) and result.startswith("CRASH_"):
-                        if attempt < self.max_retries:
-                            time.sleep(self.retry_delay)
-                            continue
+                    elif isinstance(result, str):
+                        last_error = result
+
+                        # CRASH_PANIC и CRASH_FATAL — не ретраить, сразу в блэклист
+                        if result in ("CRASH_PANIC", "CRASH_FATAL"):
+                            with open(self.debug_file, 'a', encoding='utf-8') as f:
+                                f.write(f"{result}_{attempt}: {url}\n")
+                            break
+
+                        # Другие краши или сетевые ошибки — ретраить с экспоненциальной задержкой
+                        if result.startswith("CRASH_") or result in ("TIMEOUT", "FAIL", "CONN_ERROR"):
+                            if attempt < self.max_retries:
+                                delay = self.retry_delay_base * (self.retry_delay_multiplier ** (attempt - 1))
+                                time.sleep(delay)
+                                continue
+                            else:
+                                with open(self.debug_file, 'a', encoding='utf-8') as f:
+                                    f.write(f"{result}_{attempt}: {url}\n")
+
                         else:
                             with open(self.debug_file, 'a', encoding='utf-8') as f:
                                 f.write(f"{result}_{attempt}: {url}\n")
-
-                    elif result in ["TIMEOUT", "FAIL", "CONN_ERROR"]:
-                        if attempt < self.max_retries:
-                            time.sleep(self.retry_delay)
-                            continue
-                        else:
-                            with open(self.debug_file, 'a', encoding='utf-8') as f:
-                                f.write(f"{result}_{attempt}: {url}\n")
-
-                    else:
-                        with open(self.debug_file, 'a', encoding='utf-8') as f:
-                            f.write(f"{result}_{attempt}: {url}\n")
-                        break
+                            break
 
                 self.port_manager.release_port(port)
 
             except Exception:
                 self.port_manager.release_port(port)
+
+        # Сохраняем последнюю ошибку для notworkers
+        if last_error:
+            with self._url_errors_lock:
+                self._url_last_errors[url] = last_error
 
         # Fallback alt check
         if proto in ('vless', 'trojan'):
@@ -2674,11 +2882,14 @@ class XrayTester:
         notworkers = {}
         if NOTWORKERS_ENABLED:
             notworkers = load_notworkers(NOTWORKERS_FILE)
-            notworkers_keys = set(notworkers.keys())
             filtered_urls = []
             skipped_count = 0
             for url in all_urls:
-                if normalize_vless_url(url) in notworkers_keys:
+                key = normalize_vless_url(url)
+                entry = notworkers.get(key)
+                # Пропускаем только подтверждённые записи (fail_streak >= порога)
+                # Обратная совместимость: старые записи могут не иметь fail_streak, только fail_count
+                if entry and entry.get('fail_streak', entry.get('fail_count', 0)) >= NOTWORKERS_MIN_FAILS:
                     skipped_count += 1
                 else:
                     filtered_urls.append(url)
@@ -2756,7 +2967,16 @@ class XrayTester:
             working_url_list = [w['url'] for w in working]
             working_url_set = set(working_url_list)
             failed_urls = [url for url in all_urls if url not in working_url_set]
-            notworkers = update_notworkers(notworkers, failed_urls, working_url_list)
+            # Собираем ошибки по URL из thread-safe словаря
+            with self._url_errors_lock:
+                failed_errors = {url: err for url in failed_urls
+                                 if (err := self._url_last_errors.get(url)) is not None}
+                self._url_last_errors.clear()
+            notworkers = update_notworkers(
+                notworkers, failed_urls, working_url_list,
+                failed_errors=failed_errors,
+                notworkers_min_fails=NOTWORKERS_MIN_FAILS
+            )
             save_notworkers(NOTWORKERS_FILE, notworkers)
         
         return working
