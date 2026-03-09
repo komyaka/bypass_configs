@@ -83,6 +83,13 @@ SPEED_TEST_REQUESTS = _config.getint('speed', 'speed_test_requests', fallback=3)
 STRONG_STYLE_ATTEMPTS = _config.getint('speed', 'strong_style_attempts', fallback=3)
 STRONG_STYLE_TIMEOUT = _config.getint('speed', 'strong_style_timeout', fallback=12)
 STRONG_MAX_RESPONSE_TIME = _config.getint('speed', 'strong_max_response_time', fallback=3)
+STRONG_CONNECT_TIMEOUT_RATIO = 0.4
+STRONG_CONNECT_TIMEOUT_MIN = 3
+STRONG_CONNECT_TIMEOUT_MAX = 10
+STRONG_READ_TIMEOUT_MIN = 5
+STRONG_ATTEMPT_DELAY = 0.5
+# В xraycheck для generate_204 допускается только очень маленький ответ
+GENERATE_204_MAX_CONTENT_LENGTH = 64
 
 NOTWORKERS_ENABLED = _config.getboolean('notworkers', 'notworkers_enabled', fallback=True)
 NOTWORKERS_TTL_DAYS = _config.getint('notworkers', 'notworkers_ttl_days', fallback=7)
@@ -2470,15 +2477,18 @@ class XrayTester:
                 # Для VLESS используем строгий стиль проверки как в xraycheck:
                 # несколько подряд запросов к generate_204 с ограничением по времени ответа.
                 if parsed.get('protocol') == 'vless':
-                    connect_timeout = max(3, min(10, int(self.strong_style_timeout * 0.4)))
-                    read_timeout = max(5, self.strong_style_timeout - connect_timeout)
+                    connect_timeout = max(
+                        STRONG_CONNECT_TIMEOUT_MIN,
+                        min(STRONG_CONNECT_TIMEOUT_MAX, int(self.strong_style_timeout * STRONG_CONNECT_TIMEOUT_RATIO))
+                    )
+                    read_timeout = max(STRONG_READ_TIMEOUT_MIN, self.strong_style_timeout - connect_timeout)
                     timeout_strong = (connect_timeout, read_timeout)
                     attempts_needed = max(1, self.strong_style_attempts)
                     pings = []
 
                     for attempt in range(attempts_needed):
                         if attempt > 0:
-                            time.sleep(0.5)
+                            time.sleep(STRONG_ATTEMPT_DELAY)
                         t = time.time()
                         r = session.get(
                             self.test_url,
@@ -2490,13 +2500,15 @@ class XrayTester:
 
                         if r.status_code not in [200, 204]:
                             return "FAIL"
-                        if len(r.content) > 64:
+                        if len(r.content) > GENERATE_204_MAX_CONTENT_LENGTH:
                             return "FAIL"
                         if self.strong_max_response_time > 0 and elapsed > self.strong_max_response_time:
                             return "TIMEOUT"
 
                         pings.append(elapsed * 1000)
 
+                    if not pings:
+                        return "FAIL"
                     avg_ping = sum(pings) / len(pings)
                     return {'working': True, 'ping': avg_ping, 'method': 'xray'}
 
