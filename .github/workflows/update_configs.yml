@@ -58,7 +58,15 @@ jobs:
           if ! git diff --staged --quiet; then
             date=$(date -u +"%Y-%m-%d %H:%M")
             git commit -m "auto: обновление конфигов [$date UTC]"
-            git pull --rebase origin main
+            
+            # Пулл с rebase, при конфликтах берём свою версию (свежие данные парсера)
+            git pull --rebase -X theirs origin main || {
+              # Если rebase всё равно застрял — разрешаем конфликты вручную
+              git checkout --theirs configs/url_work.txt configs/url_work_speed.txt configs/notworkers.json configs/notworkers 2>/dev/null || true
+              git add configs/url_work.txt configs/url_work_speed.txt configs/notworkers.json configs/notworkers
+              git rebase --continue || git rebase --skip
+            }
+            
             git push
             echo "✅ Конфиги обновлены и опубликованы"
           else
