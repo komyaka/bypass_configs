@@ -2949,8 +2949,8 @@ class XrayTester:
         old_sigterm = signal.signal(signal.SIGTERM, _sigterm_handler)
 
         # Параметры инкрементального сохранения
-        _incremental_save_interval = 500  # сохранять каждые 500 проверенных конфигов
-        _incremental_save_time = 60       # или каждые 60 секунд
+        _incremental_save_interval = 200  # сохранять каждые 500 проверенных конфигов
+        _incremental_save_time = 30       # или каждые 60 секунд
         _last_save_count = 0
         _last_save_time = time.time()
 
