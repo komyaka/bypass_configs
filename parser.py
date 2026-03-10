@@ -93,7 +93,7 @@ STRONG_CONNECT_TIMEOUT_RATIO = 0.4
 STRONG_CONNECT_TIMEOUT_MIN = 3
 STRONG_CONNECT_TIMEOUT_MAX = 10
 STRONG_READ_TIMEOUT_MIN = 5
-STRONG_ATTEMPT_DELAY = 0.5
+STRONG_ATTEMPT_DELAY = _config.getfloat('speed', 'strong_attempt_delay', fallback=0.15)
 # Adaptive timeout: если первый запрос медленнее этого порога, таймаут для следующих увеличивается
 ADAPTIVE_TIMEOUT_THRESHOLD_SECONDS = 5.0
 ADAPTIVE_TIMEOUT_MULTIPLIER = 1.5
@@ -124,6 +124,15 @@ MIN_SUCCESSFUL_REQUESTS = _config.getint('strict', 'min_successful_requests', fa
 
 # Проверка HTTPS через прокси
 REQUIRE_HTTPS = _config.getboolean('checker', 'require_https', fallback=True)
+
+# Предфильтр (TCP/TLS pre-filter)
+PREFILTER_ENABLED = _config.getboolean('prefilter', 'prefilter_enabled', fallback=True)
+PREFILTER_WORKERS = _config.getint('prefilter', 'prefilter_workers', fallback=200)
+PREFILTER_TCP_TIMEOUT = _config.getint('prefilter', 'prefilter_tcp_timeout', fallback=2)
+PREFILTER_TLS_TIMEOUT = _config.getint('prefilter', 'prefilter_tls_timeout', fallback=3)
+
+# Таймаут ожидания запуска Xray (с поллингом порта вместо фиксированного sleep)
+XRAY_START_WAIT = _config.getfloat('timeouts', 'xray_start_wait', fallback=2.0)
 
 print(f"⚡ Настройки: XRAY_MAX_WORKERS={XRAY_MAX_WORKERS}, TIMEOUT={XRAY_TIMEOUT}, STRICT_MODE={STRICT_MODE}, MIN_SUCCESSFUL={MIN_SUCCESSFUL_REQUESTS}")
 
@@ -1813,22 +1822,19 @@ class SimpleProgress:
 
 class PortManager:
     def __init__(self, start=20000, end=25000):
-        self.ports = list(range(start, end + 1))
-        self.used = set()
+        self.available = list(range(start, end + 1))
+        random.shuffle(self.available)
         self.lock = threading.Lock()
     
     def get_port(self):
         with self.lock:
-            available = [p for p in self.ports if p not in self.used]
-            if not available:
+            if not self.available:
                 return None
-            port = random.choice(available)
-            self.used.add(port)
-            return port
+            return self.available.pop()
     
     def release_port(self, port):
         with self.lock:
-            self.used.discard(port)
+            self.available.append(port)
 
 
 # ========= ЧЁРНЫЙ СПИСОК (NOTWORKERS) — SQLite через NotworkersDB =========
@@ -2378,6 +2384,164 @@ class XrayTester:
         except Exception as e:
             return None
 
+    def _quick_parse_host_port(self, url: str) -> Optional[tuple]:
+        """Быстро извлекает (host, port) из URL без создания полного dict-объекта"""
+        try:
+            url_lower = url.lower()
+            if url_lower.startswith('vless://') or url_lower.startswith('trojan://'):
+                # vless://uuid@host:port?... or trojan://pass@host:port?...
+                at_pos = url.find('@')
+                if at_pos == -1:
+                    return None
+                rest = url[at_pos + 1:].split('?')[0].split('#')[0]
+                if ':' in rest:
+                    host, port_str = rest.rsplit(':', 1)
+                    return (host, int(port_str))
+                return (rest, 443)
+            elif url_lower.startswith('vmess://'):
+                b64 = url[8:].split('#')[0].strip()
+                padding = 4 - len(b64) % 4
+                if padding != 4:
+                    b64 += '=' * padding
+                try:
+                    decoded = base64.b64decode(b64).decode('utf-8', errors='ignore')
+                except Exception:
+                    decoded = base64.urlsafe_b64decode(b64).decode('utf-8', errors='ignore')
+                data = json.loads(decoded)
+                return (str(data.get('add', '')), int(data.get('port', 443)))
+            elif url_lower.startswith('ss://'):
+                content = url[5:].split('#')[0]
+                if '@' in content:
+                    _, hostinfo = content.split('@', 1)
+                    host_part = hostinfo.split('?')[0]
+                    if ':' in host_part:
+                        host, port_str = host_part.rsplit(':', 1)
+                        return (host, int(port_str))
+                    return (host_part, 8388)
+                else:
+                    b64 = content
+                    padding = 4 - len(b64) % 4
+                    if padding != 4:
+                        b64 += '=' * padding
+                    decoded = base64.b64decode(b64).decode('utf-8', errors='ignore')
+                    if '@' not in decoded:
+                        return None
+                    _, hostpart = decoded.split('@', 1)
+                    if ':' in hostpart:
+                        host, port_str = hostpart.rsplit(':', 1)
+                        return (host, int(port_str))
+                    return (hostpart, 8388)
+            elif url_lower.startswith('hysteria2://') or url_lower.startswith('hy2://'):
+                prefix_len = 12 if url_lower.startswith('hysteria2://') else 6
+                content = url[prefix_len:].split('#')[0]
+                if '@' in content:
+                    _, rest = content.split('@', 1)
+                else:
+                    rest = content
+                host_part = rest.split('?')[0]
+                if ':' in host_part:
+                    host, port_str = host_part.rsplit(':', 1)
+                    return (host, int(port_str))
+                return (host_part, 443)
+        except Exception:
+            pass
+        return None
+
+    def _group_by_host(self, urls: list) -> dict:
+        """Группирует URL по парам (host, port). Возвращает {(host, port): [url, ...]}"""
+        groups: dict = {}
+        for url in urls:
+            hp = self._quick_parse_host_port(url)
+            if hp:
+                groups.setdefault(hp, []).append(url)
+        return groups
+
+    def _needs_tls_check(self, url: str) -> bool:
+        """Определяет, нужна ли TLS проверка по параметрам URL"""
+        url_lower = url.lower()
+        if url_lower.startswith('hysteria2://') or url_lower.startswith('hy2://'):
+            return True
+        if url_lower.startswith('trojan://'):
+            return True
+        if url_lower.startswith('vless://') or url_lower.startswith('vmess://'):
+            if 'security=tls' in url_lower or 'security=reality' in url_lower:
+                return True
+        return False
+
+    def _check_host_alive(self, host: str, port: int, needs_tls: bool) -> bool:
+        """Проверяет доступность хоста через TCP (и TLS если нужно)"""
+        if not check_tcp_connection(host, port, timeout=PREFILTER_TCP_TIMEOUT):
+            return False
+        if needs_tls:
+            tls_ok, _, _ = check_tls_handshake(host, port, sni=host, timeout=PREFILTER_TLS_TIMEOUT)
+            return tls_ok
+        return True
+
+    def pre_filter(self, urls: list) -> list:
+        """
+        TCP/TLS предфильтр: убирает конфиги с недоступных host:port до запуска Xray.
+        Группирует по (host, port), проверяет 200 потоками (чистый I/O).
+        Конфиги, прошедшие предфильтр, проверяются по полной схеме через Xray.
+        """
+        if not urls:
+            return urls
+
+        groups = self._group_by_host(urls)
+        unique_pairs = list(groups.keys())
+        total_pairs = len(unique_pairs)
+
+        print(f"🔎 Pre-filter: {len(urls)} конфигов → {total_pairs} уникальных host:port")
+
+        # Определяем нужность TLS для каждой пары (берём первый URL в группе)
+        pair_needs_tls: dict = {}
+        for hp, group_urls in groups.items():
+            pair_needs_tls[hp] = any(self._needs_tls_check(u) for u in group_urls)
+
+        alive_pairs: set = set()
+        lock = threading.Lock()
+
+        def _check_pair(hp):
+            host, port = hp
+            needs_tls = pair_needs_tls.get(hp, False)
+            if self._check_host_alive(host, port, needs_tls):
+                with lock:
+                    alive_pairs.add(hp)
+
+        workers = min(PREFILTER_WORKERS, total_pairs)
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            for _ in executor.map(_check_pair, unique_pairs):
+                pass
+
+        dead_pairs = total_pairs - len(alive_pairs)
+        passed_urls = [url for url in urls
+                       if self._quick_parse_host_port(url) in alive_pairs]
+        filtered_out = len(urls) - len(passed_urls)
+
+        print(f"🔎 Pre-filter результат: {dead_pairs} мёртвых пар host:port, "
+              f"отсеяно {filtered_out} конфигов, осталось {len(passed_urls)}")
+
+        return passed_urls
+
+    def _wait_for_port(self, port: int, process, timeout: float = 2.0) -> bool:
+        """Ждёт открытия SOCKS5-порта с поллингом каждые 50мс вместо фиксированного sleep"""
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            if process.poll() is not None:
+                return False
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                try:
+                    sock.settimeout(0.1)
+                    result = sock.connect_ex(('127.0.0.1', port))
+                    if result == 0:
+                        return True
+                finally:
+                    sock.close()
+            except Exception:
+                pass
+            time.sleep(0.05)
+        return False
+
     def test_with_xray(self, parsed, port, attempt=1):
         """Тестирует конфиг через Xray"""
         config_file = None
@@ -2406,8 +2570,7 @@ class XrayTester:
                 creationflags=creationflags
             )
             
-            wait_time = 1.0
-            time.sleep(wait_time)
+            self._wait_for_port(port, process, timeout=XRAY_START_WAIT)
             
             if process.poll() is not None:
                 stderr = process.stderr.read() if process.stderr else "Unknown error"
@@ -2597,11 +2760,16 @@ class XrayTester:
             return f"EXCEPTION"
         finally:
             if process:
-                try: 
+                try:
                     process.terminate()
-                    time.sleep(0.2)
-                    if process.poll() is None:
+                    try:
+                        process.wait(timeout=0.5)
+                    except subprocess.TimeoutExpired:
                         process.kill()
+                        try:
+                            process.wait(timeout=1.0)
+                        except subprocess.TimeoutExpired:
+                            pass
                 except Exception:
                     pass
             if config_file and os.path.exists(config_file):
@@ -2790,6 +2958,15 @@ class XrayTester:
             if not all_urls:
                 print(f"\n📭 Все конфиги в чёрном списке")
                 db.close()
+                return
+
+        # === TCP/TLS предфильтр (убирает мёртвые host:port до запуска Xray) ===
+        if PREFILTER_ENABLED:
+            all_urls = self.pre_filter(all_urls)
+            if not all_urls:
+                print(f"\n📭 Все конфиги отсеяны предфильтром")
+                if NOTWORKERS_ENABLED and db:
+                    db.close()
                 return
 
         print(f"\n{'='*60}")
