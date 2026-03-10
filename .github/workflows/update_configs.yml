@@ -69,6 +69,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Удаляем SQLite WAL/SHM артефакты перед git операциями
+          rm -f configs/notworkers.db-wal configs/notworkers.db-shm
+
+          # Добавляем результаты
           git add configs/url_work.txt configs/url_work_speed.txt
           if [ -f "configs/notworkers.db" ]; then
             git add configs/notworkers.db
@@ -76,22 +81,25 @@ jobs:
           else
             echo "⚠️ configs/notworkers.db не найден — файл не будет закоммичен"
           fi
+
           if ! git diff --staged --quiet; then
             date=$(date -u +"%Y-%m-%d %H:%M")
             git commit -m "auto: обновление конфигов [$date UTC]"
-            
-            # Пулл с rebase, при конфликтах берём свою версию (свежие данные парсера)
+
+            # Очищаем все unstaged/untracked файлы из рабочей директории,
+            # чтобы git pull --rebase не падал с "You have unstaged changes"
+            git stash --include-untracked 2>/dev/null || true
+
+            # Пулл с rebase, при конфликтах берём свою версию
             git pull --rebase -X theirs origin main || {
-              # Если rebase всё равно застрял — разрешаем конфликты вручную
-              git checkout --theirs configs/url_work.txt configs/url_work_speed.txt 2>/dev/null || true
-              git checkout --theirs configs/notworkers.db 2>/dev/null || true
-              git add configs/url_work.txt configs/url_work_speed.txt
-              if [ -f "configs/notworkers.db" ]; then
-                git add configs/notworkers.db
-              fi
-              git rebase --continue || git rebase --skip
+              # Если rebase застрял — прерываем и делаем обычный merge
+              git rebase --abort 2>/dev/null || true
+              git pull --no-rebase -X theirs origin main || true
             }
-            
+
+            # Восстанавливаем stash если он был создан
+            git stash pop 2>/dev/null || echo "ℹ️ stash pop: нечего восстанавливать или конфликт (не критично)"
+
             # Проверка целостности БД после rebase (бинарный файл мог повредиться)
             if [ -f "configs/notworkers.db" ]; then
               if ! python3 -c "import sqlite3; c=sqlite3.connect('configs/notworkers.db'); c.execute('SELECT count(*) FROM notworkers'); c.close()" 2>/dev/null; then
@@ -99,7 +107,7 @@ jobs:
                 git rm -f configs/notworkers.db 2>/dev/null || rm -f configs/notworkers.db
               fi
             fi
-            
+
             git push
             echo "✅ Конфиги обновлены и опубликованы"
           else
