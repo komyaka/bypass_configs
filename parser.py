@@ -30,7 +30,7 @@ if sys.stderr.encoding.lower() != 'utf-8':
 import argparse
 import configparser
 from typing import Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -1852,12 +1852,12 @@ def load_notworkers(filepath: str) -> dict:
             # Legacy flat format — migrate on next save
             entries = data
         # Очистка по TTL
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         cleaned = {}
         skipped_invalid = 0
         for key, info in entries.items():
             try:
-                last_seen = datetime.strptime(info.get('last_seen', ''), '%Y-%m-%dT%H:%M:%SZ')
+                last_seen = datetime.strptime(info.get('last_seen', ''), '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
                 if (now - last_seen).days < NOTWORKERS_TTL_DAYS:
                     cleaned[key] = info
             except (ValueError, KeyError):
@@ -1902,7 +1902,7 @@ def update_notworkers(notworkers: dict, failed_urls: list, working_urls: list,
     failed_errors: dict {url: last_error} — причины провала для каждого URL.
     notworkers_min_fails: минимальное число последовательных провалов для подтверждения.
     """
-    now_str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    now_str = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     if failed_errors is None:
         failed_errors = {}
 
@@ -2946,11 +2946,14 @@ class XrayTester:
                     save_notworkers(NOTWORKERS_FILE, self._notworkers)
             sys.exit(1)
 
-        old_sigterm = signal.signal(signal.SIGTERM, _sigterm_handler)
+        _is_main_thread = threading.current_thread() is threading.main_thread()
+        old_sigterm = None
+        if _is_main_thread:
+            old_sigterm = signal.signal(signal.SIGTERM, _sigterm_handler)
 
         # Параметры инкрементального сохранения
-        _incremental_save_interval = 200  # сохранять каждые 500 проверенных конфигов
-        _incremental_save_time = 30       # или каждые 60 секунд
+        _incremental_save_interval = 200  # сохранять каждые 200 проверенных конфигов
+        _incremental_save_time = 30       # или каждые 30 секунд
         _last_save_count = 0
         _last_save_time = time.time()
 
@@ -2976,7 +2979,7 @@ class XrayTester:
                             if NOTWORKERS_ENABLED:
                                 key = normalize_vless_url(url)
                                 if key:
-                                    now_str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                                    now_str = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
                                     with self._url_errors_lock:
                                         last_error = self._url_last_errors.get(url)
                                     with self._notworkers_lock:
@@ -3012,7 +3015,8 @@ class XrayTester:
                             _last_save_count = _checked
                             _last_save_time = _now_time
         finally:
-            signal.signal(signal.SIGTERM, old_sigterm)
+            if _is_main_thread and old_sigterm is not None:
+                signal.signal(signal.SIGTERM, old_sigterm)
             # Гарантируем сохранение при любом завершении (в т.ч. исключениях)
             if NOTWORKERS_ENABLED:
                 with self._notworkers_lock:
@@ -3045,11 +3049,13 @@ class XrayTester:
         print(f"   🚀 Топ {len(top_fast)} быстрых сохранено в {self.speed_file}")
         
         if os.path.exists(self.debug_file):
-            debug_lines = sum(1 for _ in open(self.debug_file, 'r', encoding='utf-8'))
+            with open(self.debug_file, 'r', encoding='utf-8') as f:
+                debug_lines = sum(1 for _ in f)
             print(f"\n🔍 Отладка: {debug_lines} ошибок в {self.debug_file}")
         
         if os.path.exists(self.xray_log_file):
-            xray_lines = sum(1 for _ in open(self.xray_log_file, 'r', encoding='utf-8'))
+            with open(self.xray_log_file, 'r', encoding='utf-8') as f:
+                xray_lines = sum(1 for _ in f)
             print(f"🔍 Xray ошибки: {xray_lines} в {self.xray_log_file}")
         
         print('='*60 + '\n')
