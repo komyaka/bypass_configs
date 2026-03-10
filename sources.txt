@@ -1,1 +1,5 @@
 https://github.com/igareck/vpn-configs-for-russia/raw/main/WHITE-CIDR-RU-checked.txt
+https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/Vless-Reality-White-Lists-Rus-Mobile.txt
+https://raw.githubusercontent.com/Ganjabady/XC/refs/heads/main/subscriptions/regions/RU.txt
+https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/Vless-Reality-White-Lists-Rus-Mobile-2.txt
+https://raw.githubusercontent.com/WhitePrime/xraycheck/main/configs/white-list_available_st
