@@ -1842,7 +1842,7 @@ class PortManager:
 class XrayTester:
     def __init__(self, input_file='url_encoded.txt', output_file='url_work.txt',
                  speed_file='url_work_speed.txt', max_workers=30,
-                 top_fast_count=30, speed_test_requests=3):
+                 top_fast_count=30, speed_test_requests=3, notworkers_db=None):
         self.input_file = input_file
         self.output_file = output_file
         self.speed_file = speed_file
@@ -1879,7 +1879,9 @@ class XrayTester:
         # Счётчик ошибок по URL (thread-safe) для notworkers
         self._url_last_errors: dict = {}
         self._url_errors_lock = threading.Lock()
-        self._db = None  # NotworkersDB instance, set during test_all()
+        # NotworkersDB instance — can be passed from outside or created in test_all()
+        self._db = notworkers_db
+        self._db_owned = (notworkers_db is None)  # True if test_all() should create and own the DB
 
         self.xray_dir = Path('./xray_bin')
         if sys.platform == 'win32':
@@ -2950,8 +2952,13 @@ class XrayTester:
         # === Фильтрация по чёрному списку (SQLite) ===
         db = None
         if NOTWORKERS_ENABLED:
-            db = NotworkersDB(NOTWORKERS_DB, NOTWORKERS_FILE, ttl_days=NOTWORKERS_TTL_DAYS)
-            self._db = db
+            if self._db is not None:
+                # Используем внешний экземпляр БД (владелец — вызывающий код)
+                db = self._db
+            else:
+                # Создаём собственный экземпляр (test_all() закроет его сам)
+                db = NotworkersDB(NOTWORKERS_DB, NOTWORKERS_FILE, ttl_days=NOTWORKERS_TTL_DAYS)
+                self._db = db
             blocked_keys = db.get_blocked_keys(NOTWORKERS_MIN_FAILS)
             filtered_urls = []
             skipped_count = 0
@@ -2966,7 +2973,9 @@ class XrayTester:
             all_urls = filtered_urls
             if not all_urls:
                 print(f"\n📭 Все конфиги в чёрном списке")
-                db.close()
+                if self._db_owned:
+                    db.close()
+                    self._db = None
                 return
 
         # === TCP/TLS предфильтр (убирает мёртвые host:port до запуска Xray) ===
@@ -2974,8 +2983,9 @@ class XrayTester:
             all_urls = self.pre_filter(all_urls)
             if not all_urls:
                 print(f"\n📭 Все конфиги отсеяны предфильтром")
-                if NOTWORKERS_ENABLED and db:
+                if NOTWORKERS_ENABLED and db and self._db_owned:
                     db.close()
+                    self._db = None
                 return
 
         print(f"\n{'='*60}")
@@ -3029,8 +3039,6 @@ class XrayTester:
         finally:
             if _is_main_thread and old_sigterm is not None:
                 signal.signal(signal.SIGTERM, old_sigterm)
-            if NOTWORKERS_ENABLED and db:
-                db.close()
             with self._url_errors_lock:
                 self._url_last_errors.clear()
 
@@ -3070,11 +3078,15 @@ class XrayTester:
         
         print('='*60 + '\n')
 
-        # === Итоговая статистика чёрного списка ===
+        # === Итоговая статистика чёрного списка (до закрытия БД) ===
         if NOTWORKERS_ENABLED and db:
             total = db.count()
             confirmed = db.count_confirmed(NOTWORKERS_MIN_FAILS)
             print(f"📊 Чёрный список итого: {total} записей (подтверждено: {confirmed})")
+            # Закрываем БД только если test_all() сам её создал
+            if self._db_owned:
+                db.close()
+                self._db = None
         
         return working
 
@@ -3249,8 +3261,22 @@ async def main_cycle():
     global cycle_counter
     cycle_counter += 1
     print(f"\n=== Новый цикл #{cycle_counter} ===")
+
+    # Ранняя инициализация NotworkersDB — гарантирует создание файла .db
+    # и запуск TTL-очистки в начале каждого цикла
+    notworkers_db = None
+    if NOTWORKERS_ENABLED:
+        notworkers_db = NotworkersDB(NOTWORKERS_DB, NOTWORKERS_FILE, ttl_days=NOTWORKERS_TTL_DAYS)
+
+    try:
+        await _run_cycle_logic(notworkers_db)
+    finally:
+        if notworkers_db is not None:
+            notworkers_db.close()
+
+
+async def _run_cycle_logic(notworkers_db):
     
-    # Очистка debug_failed.txt каждые 5 циклов
     if cycle_counter % CYCLES_BEFORE_DEBUG_CLEAN == 0:
         if os.path.exists(DEBUG_FILE):
             os.remove(DEBUG_FILE)
@@ -3322,16 +3348,8 @@ async def main_cycle():
         print("⏭️ Нет конфигов для проверки")
         return
 
-    # Фильтрация по чёрному списку перед передачей в XrayTester (SQLite)
-    if NOTWORKERS_ENABLED:
-        pre_filter_db = NotworkersDB(NOTWORKERS_DB, NOTWORKERS_FILE, ttl_days=NOTWORKERS_TTL_DAYS)
-        pre_filter_count = len(urls_to_test)
-        confirmed_keys = pre_filter_db.get_blocked_keys(NOTWORKERS_MIN_FAILS)
-        urls_to_test = [url for url in urls_to_test if url.split('#')[0].strip() not in confirmed_keys]
-        filtered_count = pre_filter_count - len(urls_to_test)
-        if filtered_count:
-            print(f"⚫ Отфильтровано по чёрному списку (до XrayTester): {filtered_count} конфигов")
-        pre_filter_db.close()
+    # Единственный экземпляр notworkers_db передаётся в XrayTester для фильтрации
+    # по чёрному списку и записи ошибок — одно соединение с БД на весь цикл.
 
     print(f"\n📋 Итого для проверки: {len(urls_to_test)} конфигов")
     with open(COMBINED_FILE, 'w', encoding='utf-8') as f:
@@ -3346,6 +3364,7 @@ async def main_cycle():
         max_workers=XRAY_MAX_WORKERS,
         top_fast_count=TOP_FAST_COUNT,
         speed_test_requests=SPEED_TEST_REQUESTS,
+        notworkers_db=notworkers_db,
     )
     
     tester.run()

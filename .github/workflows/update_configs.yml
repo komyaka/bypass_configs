@@ -37,6 +37,19 @@ jobs:
       - name: Установка зависимостей
         run: pip install -r requirements.txt
 
+      - name: Проверка целостности БД нотворкеров перед запуском
+        run: |
+          if [ -f "configs/notworkers.db" ]; then
+            if python3 -c "import sqlite3; c=sqlite3.connect('configs/notworkers.db'); c.execute('SELECT count(*) FROM notworkers'); c.close()" 2>/dev/null; then
+              echo "✅ configs/notworkers.db — целостность OK"
+            else
+              echo "⚠️ configs/notworkers.db повреждена — удаляю для пересоздания"
+              rm -f configs/notworkers.db
+            fi
+          else
+            echo "ℹ️ configs/notworkers.db не существует — будет создана парсером"
+          fi
+
       - name: Запуск парсера (один цикл)
         run: python parser.py --once
         timeout-minutes: 35
@@ -57,7 +70,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add configs/url_work.txt configs/url_work_speed.txt
-          git add configs/notworkers.db 2>/dev/null || true
+          if [ -f "configs/notworkers.db" ]; then
+            git add configs/notworkers.db
+            echo "✅ configs/notworkers.db добавлен в коммит"
+          else
+            echo "⚠️ configs/notworkers.db не найден — файл не будет закоммичен"
+          fi
           if ! git diff --staged --quiet; then
             date=$(date -u +"%Y-%m-%d %H:%M")
             git commit -m "auto: обновление конфигов [$date UTC]"
@@ -68,9 +86,19 @@ jobs:
               git checkout --theirs configs/url_work.txt configs/url_work_speed.txt 2>/dev/null || true
               git checkout --theirs configs/notworkers.db 2>/dev/null || true
               git add configs/url_work.txt configs/url_work_speed.txt
-              git add configs/notworkers.db 2>/dev/null || true
+              if [ -f "configs/notworkers.db" ]; then
+                git add configs/notworkers.db
+              fi
               git rebase --continue || git rebase --skip
             }
+            
+            # Проверка целостности БД после rebase (бинарный файл мог повредиться)
+            if [ -f "configs/notworkers.db" ]; then
+              if ! python3 -c "import sqlite3; c=sqlite3.connect('configs/notworkers.db'); c.execute('SELECT count(*) FROM notworkers'); c.close()" 2>/dev/null; then
+                echo "⚠️ configs/notworkers.db повреждена после rebase — удаляю"
+                git rm -f configs/notworkers.db 2>/dev/null || rm -f configs/notworkers.db
+              fi
+            fi
             
             git push
             echo "✅ Конфиги обновлены и опубликованы"

@@ -88,7 +88,7 @@ class NotworkersDB:
     def add_failed(self, url, protocol='unknown', error=None):
         """Добавляет/обновляет запись о провале"""
         key = url.split('#')[0].strip()
-        now_str = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
         with self._lock:
             self.conn.execute("""
                 INSERT INTO notworkers (url_key, raw, protocol, first_seen, last_seen, fail_count, fail_streak, last_error)
