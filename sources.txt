@@ -1,7 +1,10 @@
-https://raw.githubusercontent.com/Firmfox/Proxify/main/v2ray_configs/seperated_by_protocol/vless.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/vl.txt
-https://raw.githubusercontent.com/Delta-Kronecker/V2ray-Config/main/config/all_configs.txt
-https://raw.githubusercontent.com/vsevjik/OBSpiskov/refs/heads/main/wwh
-https://github.com/oaoa4676-alt/vpn-klysh/raw/main/white-list
-https://cdn.jsdelivr.net/gh/EtoNeYaProject/EtoNeYaProject.github.io@refs/heads/main/1
-https://raw.githubusercontent.com/OZRED/vless/refs/heads/main/ozred_bot
+https://raw.githubusercontent.com/EtoNeYaProject/etoneyaproject.github.io/main/whitelist
+https://raw.githubusercontent.com/EtoNeYaProject/etoneyaproject.github.io/main/1
+https://raw.githubusercontent.com/EtoNeYaProject/etoneyaproject.github.io/main/2
+https://raw.githubusercontent.com/EtoNeYaProject/etoneyaproject.github.io/main/vless
+https://raw.githubusercontent.com/EtoNeYaProject/etoneyaproject.github.io/refs/heads/main/1
+https://raw.githubusercontent.com/EtoNeYaProject/etoneyaproject.github.io/refs/heads/main/2
+https://github.com/AirLinkVPN/AirLinkVPN.github.io/raw/main/1.txt
+https://github.com/EtoNeYaProject/etoneyaproject.github.io/raw/main/test
+https://raw.githubusercontent.com/AirLinkVPN/AirLinkVPN.github.io/main/1.txt
+https://github.com/igareck/vpn-configs-for-russia/raw/main/WHITE-CIDR-RU-checked.txt
