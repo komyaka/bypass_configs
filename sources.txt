@@ -1,3 +1,2 @@
 https://github.com/EtoNeYaProject/etoneyaproject.github.io/raw/main/test
-https://raw.githubusercontent.com/AirLinkVPN/AirLinkVPN.github.io/main/1.txt
 https://github.com/igareck/vpn-configs-for-russia/raw/main/WHITE-CIDR-RU-checked.txt
