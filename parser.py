@@ -17,6 +17,7 @@ import sys
 import io
 import base64
 import platform
+import signal
 from urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -1999,6 +2000,10 @@ class XrayTester:
         # Счётчик ошибок по URL (thread-safe) для notworkers
         self._url_last_errors: dict = {}
         self._url_errors_lock = threading.Lock()
+
+        # Инкрементальное обновление чёрного списка
+        self._notworkers: dict = {}
+        self._notworkers_lock = threading.Lock()
         
         self.xray_dir = Path('./xray_bin')
         if sys.platform == 'win32':
@@ -2916,7 +2921,10 @@ class XrayTester:
             if not all_urls:
                 print(f"\n📭 Все конфиги в чёрном списке")
                 return
-        
+
+        # Сохраняем ссылку на notworkers в self для SIGTERM-обработчика
+        self._notworkers = notworkers
+
         print(f"\n{'='*60}")
         print(f"🔍 Тестирование {len(all_urls)} конфигов")
         print(f"⚡ Потоков: {self.max_workers}")
@@ -2929,22 +2937,89 @@ class XrayTester:
         
         working = []
         progress = SimpleProgress(len(all_urls))
-        
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            futures = {executor.submit(self.test_one, url): url for url in all_urls}
-            
-            for future in as_completed(futures):
-                url = futures[future]
-                try:
-                    result = future.result(timeout=self.timeout + 5)
-                    if result:
-                        working.append(result)
-                        progress.update('✅', working=True)
-                    else:
-                        progress.update('❌', working=False)
-                except Exception as e:
-                    progress.update('⚠️', working=False)
-        
+
+        # === SIGTERM-обработчик для graceful shutdown (GitHub Actions таймаут) ===
+        def _sigterm_handler(signum, frame):
+            print(f"\n⚠️ Получен сигнал {signum}, сохраняю чёрный список перед завершением...")
+            if NOTWORKERS_ENABLED:
+                with self._notworkers_lock:
+                    save_notworkers(NOTWORKERS_FILE, self._notworkers)
+            sys.exit(1)
+
+        old_sigterm = signal.signal(signal.SIGTERM, _sigterm_handler)
+
+        # Параметры инкрементального сохранения
+        _incremental_save_interval = 500  # сохранять каждые 500 проверенных конфигов
+        _incremental_save_time = 60       # или каждые 60 секунд
+        _last_save_count = 0
+        _last_save_time = time.time()
+
+        try:
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                futures = {executor.submit(self.test_one, url): url for url in all_urls}
+                
+                for future in as_completed(futures):
+                    url = futures[future]
+                    try:
+                        result = future.result(timeout=self.timeout + 5)
+                        if result:
+                            working.append(result)
+                            progress.update('✅', working=True)
+                            # Удаляем ожившие конфиги из чёрного списка
+                            if NOTWORKERS_ENABLED:
+                                key = normalize_vless_url(url)
+                                with self._notworkers_lock:
+                                    notworkers.pop(key, None)
+                        else:
+                            progress.update('❌', working=False)
+                            # Инкрементально обновляем чёрный список в памяти
+                            if NOTWORKERS_ENABLED:
+                                key = normalize_vless_url(url)
+                                if key:
+                                    now_str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                                    with self._url_errors_lock:
+                                        last_error = self._url_last_errors.get(url)
+                                    with self._notworkers_lock:
+                                        if key in notworkers:
+                                            notworkers[key]['last_seen'] = now_str
+                                            notworkers[key]['fail_count'] = notworkers[key].get('fail_count', 1) + 1
+                                            notworkers[key]['fail_streak'] = notworkers[key].get('fail_streak', 1) + 1
+                                            if last_error:
+                                                notworkers[key]['last_error'] = last_error
+                                        else:
+                                            entry = {
+                                                'raw': url,
+                                                'first_seen': now_str,
+                                                'last_seen': now_str,
+                                                'fail_count': 1,
+                                                'fail_streak': 1,
+                                                'protocol': get_protocol_type(url)
+                                            }
+                                            if last_error:
+                                                entry['last_error'] = last_error
+                                            notworkers[key] = entry
+                    except Exception as e:
+                        progress.update('⚠️', working=False)
+
+                    # Периодическое сохранение на диск
+                    if NOTWORKERS_ENABLED:
+                        _checked = progress.current
+                        _now_time = time.time()
+                        if (_checked - _last_save_count >= _incremental_save_interval or
+                                _now_time - _last_save_time >= _incremental_save_time):
+                            with self._notworkers_lock:
+                                save_notworkers(NOTWORKERS_FILE, notworkers)
+                            _last_save_count = _checked
+                            _last_save_time = _now_time
+        finally:
+            signal.signal(signal.SIGTERM, old_sigterm)
+            # Гарантируем сохранение при любом завершении (в т.ч. исключениях)
+            if NOTWORKERS_ENABLED:
+                with self._notworkers_lock:
+                    save_notworkers(NOTWORKERS_FILE, notworkers)
+            with self._url_errors_lock:
+                self._url_last_errors.clear()
+
         progress.finish()
         
         working.sort(key=lambda x: x['ping'])
@@ -2979,22 +3054,15 @@ class XrayTester:
         
         print('='*60 + '\n')
 
-        # === Обновление чёрного списка ===
+        # === Итоговая статистика чёрного списка ===
+        # Инкрементальные обновления уже выполнены внутри цикла проверки.
+        # Финальное сохранение гарантируется блоком finally выше.
         if NOTWORKERS_ENABLED:
-            working_url_list = [w['url'] for w in working]
-            working_url_set = set(working_url_list)
-            failed_urls = [url for url in all_urls if url not in working_url_set]
-            # Собираем ошибки по URL из thread-safe словаря
-            with self._url_errors_lock:
-                failed_errors = {url: err for url in failed_urls
-                                 if (err := self._url_last_errors.get(url)) is not None}
-                self._url_last_errors.clear()
-            notworkers = update_notworkers(
-                notworkers, failed_urls, working_url_list,
-                failed_errors=failed_errors,
-                notworkers_min_fails=NOTWORKERS_MIN_FAILS
+            confirmed = sum(
+                1 for e in notworkers.values()
+                if e.get('fail_streak', 0) >= NOTWORKERS_MIN_FAILS
             )
-            save_notworkers(NOTWORKERS_FILE, notworkers)
+            print(f"📊 Чёрный список итого: {len(notworkers)} записей (подтверждено: {confirmed})")
         
         return working
 
