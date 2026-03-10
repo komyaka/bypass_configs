@@ -3339,8 +3339,7 @@ async def main_cycle():
         speed_test_requests=SPEED_TEST_REQUESTS,
     )
     
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, tester.run)
+    tester.run()
 
     await rename_working_configs()
 

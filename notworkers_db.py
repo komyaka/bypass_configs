@@ -147,6 +147,7 @@ class NotworkersDB:
 
     def close(self):
         try:
+            self.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             self.conn.close()
         except Exception:
             pass

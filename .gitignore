@@ -26,3 +26,6 @@ configs/notworkers.json.migrated
 configs/notworkers.json
 configs/notworkers.migrated
 configs/notworkers
+# SQLite WAL/SHM runtime files (not needed in git)
+configs/notworkers.db-wal
+configs/notworkers.db-shm
