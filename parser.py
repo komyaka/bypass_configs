@@ -130,7 +130,6 @@ PREFILTER_ENABLED = _config.getboolean('prefilter', 'prefilter_enabled', fallbac
 PREFILTER_WORKERS = _config.getint('prefilter', 'prefilter_workers', fallback=200)
 PREFILTER_TCP_TIMEOUT = _config.getint('prefilter', 'prefilter_tcp_timeout', fallback=2)
 PREFILTER_TLS_TIMEOUT = _config.getint('prefilter', 'prefilter_tls_timeout', fallback=3)
-PREFILTER_TIMEOUT = _config.getint('prefilter', 'prefilter_timeout', fallback=5)
 
 # Таймаут ожидания запуска Xray (с поллингом порта вместо фиксированного sleep)
 XRAY_START_WAIT = _config.getfloat('timeouts', 'xray_start_wait', fallback=2.0)
@@ -2510,7 +2509,8 @@ class XrayTester:
 
         workers = min(PREFILTER_WORKERS, total_pairs)
         with ThreadPoolExecutor(max_workers=workers) as executor:
-            list(executor.map(_check_pair, unique_pairs))
+            for _ in executor.map(_check_pair, unique_pairs):
+                pass
 
         dead_pairs = total_pairs - len(alive_pairs)
         passed_urls = [url for url in urls
@@ -2530,11 +2530,13 @@ class XrayTester:
                 return False
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(0.1)
-                result = sock.connect_ex(('127.0.0.1', port))
-                sock.close()
-                if result == 0:
-                    return True
+                try:
+                    sock.settimeout(0.1)
+                    result = sock.connect_ex(('127.0.0.1', port))
+                    if result == 0:
+                        return True
+                finally:
+                    sock.close()
             except Exception:
                 pass
             time.sleep(0.05)
