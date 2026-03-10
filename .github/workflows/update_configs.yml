@@ -56,7 +56,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add configs/url_work.txt configs/url_work_speed.txt configs/notworkers.db
+          git add configs/url_work.txt configs/url_work_speed.txt
+          git add configs/notworkers.db 2>/dev/null || true
           if ! git diff --staged --quiet; then
             date=$(date -u +"%Y-%m-%d %H:%M")
             git commit -m "auto: обновление конфигов [$date UTC]"
@@ -64,8 +65,10 @@ jobs:
             # Пулл с rebase, при конфликтах берём свою версию (свежие данные парсера)
             git pull --rebase -X theirs origin main || {
               # Если rebase всё равно застрял — разрешаем конфликты вручную
-              git checkout --theirs configs/url_work.txt configs/url_work_speed.txt configs/notworkers.db 2>/dev/null || true
-              git add configs/url_work.txt configs/url_work_speed.txt configs/notworkers.db
+              git checkout --theirs configs/url_work.txt configs/url_work_speed.txt 2>/dev/null || true
+              git checkout --theirs configs/notworkers.db 2>/dev/null || true
+              git add configs/url_work.txt configs/url_work_speed.txt
+              git add configs/notworkers.db 2>/dev/null || true
               git rebase --continue || git rebase --skip
             }
             

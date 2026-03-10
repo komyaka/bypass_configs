@@ -2520,6 +2520,15 @@ class XrayTester:
         print(f"🔎 Pre-filter результат: {dead_pairs} мёртвых пар host:port, "
               f"отсеяно {filtered_out} конфигов, осталось {len(passed_urls)}")
 
+        # Записываем мёртвые конфиги в чёрный список
+        if NOTWORKERS_ENABLED and self._db:
+            dead_pairs_set = set(unique_pairs) - alive_pairs
+            dead_urls = [url for hp in dead_pairs_set for url in groups[hp]]
+            for url in dead_urls:
+                self._db.add_failed(url, get_protocol_type(url), "PREFILTER_DEAD_HOST")
+            if dead_urls:
+                print(f"⚫ Pre-filter: {len(dead_urls)} конфигов добавлено в чёрный список")
+
         return passed_urls
 
     def _wait_for_port(self, port: int, process, timeout: float = 2.0) -> bool:
