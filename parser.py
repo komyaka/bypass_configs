@@ -1944,17 +1944,11 @@ def update_notworkers(notworkers: dict, failed_urls: list, working_urls: list,
                 notworkers[key]['last_error'] = last_error
             added += 1
 
-    # Сбрасываем fail_streak для URL, которые перестали падать (но не стали рабочими).
-    # Записи с fail_streak=0 остаются в словаре (для истории fail_count),
-    # но не блокируются при следующем цикле (fail_streak < notworkers_min_fails).
-    failed_normalized = {normalize_vless_url(url) for url in failed_urls}
-    all_tested_normalized = failed_normalized | working_normalized
-    for key in list(notworkers.keys()):
-        if key in working_normalized:
-            continue  # уже удалены выше
-        if key not in all_tested_normalized:
-            # URL не тестировался в этом цикле — сбрасываем streak
-            notworkers[key]['fail_streak'] = 0
+    # Не сбрасываем fail_streak для URL, которые не тестировались в этом цикле.
+    # Если конфиг был отфильтрован чёрным списком (не тестировался), его fail_streak
+    # должен сохраняться, чтобы он оставался заблокированным до истечения TTL.
+    # Конфиги, которые перестали появляться в источниках, будут удалены по TTL
+    # (notworkers_ttl_days), а не через сброс fail_streak.
 
     confirmed = sum(
         1 for e in notworkers.values()
@@ -3250,9 +3244,13 @@ async def main_cycle():
 
     # Фильтрация по чёрному списку перед передачей в XrayTester
     if NOTWORKERS_ENABLED:
-        notworkers_keys = set(load_notworkers(NOTWORKERS_FILE).keys())
+        notworkers_data = load_notworkers(NOTWORKERS_FILE)
         pre_filter_count = len(urls_to_test)
-        urls_to_test = [url for url in urls_to_test if normalize_vless_url(url) not in notworkers_keys]
+        confirmed_keys = {
+            key for key, entry in notworkers_data.items()
+            if entry.get('fail_streak', entry.get('fail_count', 0)) >= NOTWORKERS_MIN_FAILS
+        }
+        urls_to_test = [url for url in urls_to_test if normalize_vless_url(url) not in confirmed_keys]
         filtered_count = pre_filter_count - len(urls_to_test)
         if filtered_count:
             print(f"⚫ Отфильтровано по чёрному списку (до XrayTester): {filtered_count} конфигов")
