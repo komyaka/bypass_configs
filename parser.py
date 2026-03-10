@@ -17,8 +17,9 @@ import sys
 import io
 import base64
 import platform
+from urllib3.exceptions import InsecureRequestWarning
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 # ========= КОДИРОВКА UTF-8 ДЛЯ WINDOWS =========
 if sys.stdout.encoding.lower() != 'utf-8':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
