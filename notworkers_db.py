@@ -151,6 +151,14 @@ class NotworkersDB:
             self.conn.close()
         except Exception:
             pass
+        # Удаляем WAL/SHM файлы чтобы не мешать git операциям
+        for suffix in ('-wal', '-shm'):
+            try:
+                wal_path = self.db_path + suffix
+                if os.path.exists(wal_path):
+                    os.remove(wal_path)
+            except Exception:
+                pass
 
     def export_text(self, filepath):
         """Экспортирует ключи в текстовый файл для совместимости"""
