@@ -3220,11 +3220,13 @@ def get_countries_batch(ips: list) -> dict:
     return result
 
 
-async def rename_working_configs():
+async def rename_working_configs(notworkers_db=None):
     """
     Переписывает url_work.txt и url_work_speed.txt, присваивая каждому конфигу
     имя вида «🇷🇺 Russia 1», «🇷🇺 Russia 2», … (флаг + страна + порядковый номер).
+    Конфиги НЕ из России и Unknown отсеиваются в чёрный список NOTWORKERS.
     """
+    ALLOWED_GEO = {"russia", "unknown"}
     print("\n=== Переименование рабочих конфигов по стране ===")
 
     for filepath in (WORK_FILE, SPEED_FILE):
@@ -3254,10 +3256,20 @@ async def rename_working_configs():
         # Счётчики по странам
         country_counters: dict = {}
         renamed = []
+        geo_blocked = 0
+
         for url, host in zip(urls, hosts):
             info = ip_info.get(host, {"country": "Unknown", "countryCode": ""})
             country = info.get("country", "Unknown") or "Unknown"
             code = info.get("countryCode", "") or ""
+
+            # Фильтрация по стране — оставляем только Russia и Unknown
+            if country.lower() not in ALLOWED_GEO:
+                geo_blocked += 1
+                if NOTWORKERS_ENABLED and notworkers_db:
+                    notworkers_db.add_failed(url, get_protocol_type(url), f"GEO_BLOCKED:{country}")
+                continue
+
             flag = country_code_to_flag(code) if code else "🏳"
 
             country_counters[country] = country_counters.get(country, 0) + 1
@@ -3266,6 +3278,9 @@ async def rename_working_configs():
             base = url.split('#', 1)[0]
             new_url = f"{base}#{flag} {country} {num}"
             renamed.append(new_url)
+
+        if geo_blocked:
+            print(f"🌍 {filepath}: отсеяно по геолокации: {geo_blocked} конфигов (не RU/Unknown)")
 
         try:
             with open(filepath, "w", encoding="utf-8") as f:
@@ -3389,7 +3404,7 @@ async def _run_cycle_logic(notworkers_db):
     
     tester.run()
 
-    await rename_working_configs()
+    await rename_working_configs(notworkers_db)
 
 
 async def run_forever():
