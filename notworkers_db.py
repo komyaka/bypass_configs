@@ -107,10 +107,14 @@ class NotworkersDB:
                 self._pending_writes = 0
 
     def remove_working(self, url):
-        """Удаляет ожившие конфиги"""
+        """Удаляет ожившие конфиги (но не GEO-заблокированные — они навсегда)"""
         key = url.split('#')[0].strip()
         with self._lock:
-            self.conn.execute("DELETE FROM notworkers WHERE url_key = ?", (key,))
+            self.conn.execute(
+                "DELETE FROM notworkers WHERE url_key = ? "
+                "AND (last_error IS NULL OR last_error NOT LIKE 'GEO_BLOCKED:%')",
+                (key,)
+            )
             self.conn.commit()
 
     def is_blocked(self, url, min_fails=2):
@@ -130,10 +134,11 @@ class NotworkersDB:
         return {row[0] for row in rows}
 
     def cleanup_ttl(self, ttl_days=None):
-        """Очистка по TTL"""
+        """Очистка по TTL — GEO-заблокированные записи не удаляются (они навсегда)"""
         days = ttl_days or self.ttl_days
         cursor = self.conn.execute(
-            "DELETE FROM notworkers WHERE last_seen < datetime('now', ?)",
+            "DELETE FROM notworkers WHERE last_seen < datetime('now', ?) "
+            "AND (last_error IS NULL OR last_error NOT LIKE 'GEO_BLOCKED:%')",
             (f'-{days} days',)
         )
         self.conn.commit()
@@ -148,6 +153,12 @@ class NotworkersDB:
     def count_confirmed(self, min_fails=2):
         return self.conn.execute(
             "SELECT COUNT(*) FROM notworkers WHERE fail_streak >= ?", (min_fails,)
+        ).fetchone()[0]
+
+    def count_geo_blocked(self):
+        """Возвращает количество записей, заблокированных навсегда по геолокации"""
+        return self.conn.execute(
+            "SELECT COUNT(*) FROM notworkers WHERE last_error LIKE 'GEO_BLOCKED:%'"
         ).fetchone()[0]
 
     def checkpoint(self):

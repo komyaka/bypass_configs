@@ -3102,7 +3102,8 @@ class XrayTester:
         if NOTWORKERS_ENABLED and db:
             total = db.count()
             confirmed = db.count_confirmed(NOTWORKERS_MIN_FAILS)
-            print(f"📊 Чёрный список итого: {total} записей (подтверждено: {confirmed})")
+            geo_blocked = db.count_geo_blocked()
+            print(f"📊 Чёрный список итого: {total} записей (подтверждено: {confirmed}, GEO-блок навсегда: {geo_blocked})")
             # Закрываем БД только если test_all() сам её создал
             if self._db_owned:
                 db.close()
