@@ -3,9 +3,9 @@ name: Обновление конфигов VPN
 on:
   schedule:
     # Запуск каждые ~60 минут
-    # - cron: '0 * * * *'
+     - cron: '0 * * * *'
     # Запуск каждые ~20 минут
-    - cron: '*/20 * * * *'
+    #- cron: '*/20 * * * *'
   workflow_dispatch:
     # Ручной запуск через интерфейс GitHub
 
@@ -52,7 +52,7 @@ jobs:
 
       - name: Запуск парсера (один цикл)
         run: python parser.py --once
-        timeout-minutes: 35
+        timeout-minutes: 55
 
       - name: Копирование результатов в папку configs
         run: |
