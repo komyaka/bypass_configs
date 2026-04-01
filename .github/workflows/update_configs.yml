@@ -37,18 +37,16 @@ jobs:
       - name: Установка зависимостей
         run: pip install -r requirements.txt
 
-      - name: Проверка целостности БД нотворкеров перед запуском
+      - name: Восстановление notworkers.db из JSON перед запуском
         run: |
-          if [ -f "configs/notworkers.db" ]; then
-            if python3 -c "import sqlite3; c=sqlite3.connect('configs/notworkers.db'); c.execute('SELECT count(*) FROM notworkers'); c.close()" 2>/dev/null; then
-              echo "✅ configs/notworkers.db — целостность OK"
-            else
-              echo "⚠️ configs/notworkers.db повреждена — удаляю для пересоздания"
-              rm -f configs/notworkers.db
-            fi
+          if [ -f "configs/notworkers.json" ]; then
+            echo "✅ configs/notworkers.json найден — БД будет восстановлена из него при старте парсера"
           else
-            echo "ℹ️ configs/notworkers.db не существует — будет создана парсером"
+            echo "ℹ️ configs/notworkers.json не найден — парсер создаст новую БД"
           fi
+          # Удаляем бинарный .db — он всегда пересоздаётся из JSON
+          rm -f configs/notworkers.db configs/notworkers.db-wal configs/notworkers.db-shm
+          echo "✅ Временные файлы БД очищены"
 
       - name: Запуск парсера (один цикл)
         run: python parser.py --once
@@ -65,21 +63,53 @@ jobs:
             fi
           done
 
+      - name: Экспорт notworkers в JSON перед коммитом
+        run: |
+          python3 - <<'EOF'
+          import sys, os
+          sys.path.insert(0, os.getcwd())
+          from notworkers_db import NotworkersDB
+          db_path = "configs/notworkers.db"
+          json_path = "configs/notworkers.json"
+          if os.path.exists(db_path):
+              try:
+                  db = NotworkersDB(db_path, json_path)
+                  count = db.export_json(json_path, max_records=100000)
+                  db.close()
+                  print(f"✅ Экспорт завершён: {count} записей → {json_path}")
+              except Exception as e:
+                  print(f"⚠️ Ошибка экспорта: {e}")
+          else:
+              print("ℹ️ configs/notworkers.db не найден — экспорт пропущен")
+          EOF
+
       - name: Публикация результатов в репозиторий
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Удаляем SQLite WAL/SHM артефакты перед git операциями
+          # Удаляем SQLite WAL/SHM артефакты и бинарный .db из трекинга git
           rm -f configs/notworkers.db-wal configs/notworkers.db-shm
+
+          # Убедимся что .db не трекается git (на случай если он был закоммичен ранее)
+          git rm --cached configs/notworkers.db 2>/dev/null || true
 
           # Добавляем результаты
           git add configs/url_work.txt configs/url_work_speed.txt
-          if [ -f "configs/notworkers.db" ]; then
-            git add configs/notworkers.db
-            echo "✅ configs/notworkers.db добавлен в коммит"
+
+          # Добавляем JSON-экспорт notworkers (вместо бинарного .db)
+          if [ -f "configs/notworkers.json" ]; then
+            # Проверка размера JSON (не должен превышать 50 МБ)
+            MAX_JSON_SIZE=$((50 * 1024 * 1024))
+            JSON_SIZE=$(stat -c%s "configs/notworkers.json" 2>/dev/null || echo 0)
+            if [ "$JSON_SIZE" -le "$MAX_JSON_SIZE" ]; then
+              git add configs/notworkers.json
+              echo "✅ configs/notworkers.json добавлен в коммит (${JSON_SIZE} байт)"
+            else
+              echo "⚠️ configs/notworkers.json слишком большой (${JSON_SIZE} байт > 50MB) — пропускаю"
+            fi
           else
-            echo "⚠️ configs/notworkers.db не найден — файл не будет закоммичен"
+            echo "⚠️ configs/notworkers.json не найден — файл не будет закоммичен"
           fi
 
           if ! git diff --staged --quiet; then
@@ -99,14 +129,6 @@ jobs:
 
             # Восстанавливаем stash если он был создан
             git stash pop 2>/dev/null || echo "ℹ️ stash pop: нечего восстанавливать или конфликт (не критично)"
-
-            # Проверка целостности БД после rebase (бинарный файл мог повредиться)
-            if [ -f "configs/notworkers.db" ]; then
-              if ! python3 -c "import sqlite3; c=sqlite3.connect('configs/notworkers.db'); c.execute('SELECT count(*) FROM notworkers'); c.close()" 2>/dev/null; then
-                echo "⚠️ configs/notworkers.db повреждена после rebase — удаляю"
-                git rm -f configs/notworkers.db 2>/dev/null || rm -f configs/notworkers.db
-              fi
-            fi
 
             git push
             echo "✅ Конфиги обновлены и опубликованы"

@@ -21,11 +21,11 @@ xray_errors.log
 processed.json
 cache_results.json
 
-# Notworkers migration backups and old JSON format
+# Notworkers migration backups
 configs/notworkers.json.migrated
-configs/notworkers.json
 configs/notworkers.migrated
-configs/notworkers
 # SQLite WAL/SHM runtime files (not needed in git)
 configs/notworkers.db-wal
 configs/notworkers.db-shm
+# SQLite binary DB — слишком большой для git, используем JSON-экспорт
+configs/notworkers.db

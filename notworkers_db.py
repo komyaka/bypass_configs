@@ -28,6 +28,7 @@ class NotworkersDB:
 
         # TTL-очистка при старте
         self.cleanup_ttl()
+        self.cleanup_geo_blocked()
 
     def _create_tables(self):
         self.conn.execute("""
@@ -74,15 +75,7 @@ class NotworkersDB:
             self.conn.commit()
             print(f"📦 Миграция JSON → SQLite: {migrated} записей импортировано")
 
-            # Переименовываем JSON в бэкап (не удаляем!)
-            backup = json_path + '.migrated'
-            os.rename(json_path, backup)
-            print(f"📁 JSON сохранён как бэкап: {backup}")
-
-            # Также переименовываем текстовый файл если есть
-            text_path = os.path.splitext(json_path)[0]  # configs/notworkers
-            if os.path.exists(text_path):
-                os.rename(text_path, text_path + '.migrated')
+            print(f"📁 JSON импортирован из {json_path} (файл оставлен как основное хранилище)")
 
         except Exception as e:
             print(f"⚠️ Ошибка миграции JSON → SQLite: {e}")
@@ -208,3 +201,68 @@ class NotworkersDB:
                     f.write(row[0] + '\n')
         except Exception as e:
             print(f"⚠️ Ошибка экспорта: {e}")
+
+    def export_json(self, filepath, max_records=None):
+        """Экспортирует все записи в JSON для хранения в git вместо бинарного .db файла.
+
+        Порядок приоритета: сначала GEO_BLOCKED (постоянные), затем по убыванию fail_streak.
+        max_records — ограничение на количество записей (защита от бесконтрольного роста).
+        """
+        try:
+            query = """
+                SELECT url_key, raw, protocol, first_seen, last_seen, fail_count, fail_streak, last_error
+                FROM notworkers
+                ORDER BY
+                    CASE WHEN last_error LIKE 'GEO_BLOCKED:%' THEN 0 ELSE 1 END ASC,
+                    fail_streak DESC,
+                    last_seen DESC
+            """
+            if max_records:
+                query += f" LIMIT {int(max_records)}"
+
+            rows = self.conn.execute(query).fetchall()
+            data = {}
+            for row in rows:
+                url_key, raw, protocol, first_seen, last_seen, fail_count, fail_streak, last_error = row
+                data[url_key] = {
+                    "raw": raw,
+                    "protocol": protocol,
+                    "first_seen": first_seen,
+                    "last_seen": last_seen,
+                    "fail_count": fail_count,
+                    "fail_streak": fail_streak,
+                }
+                if last_error:
+                    data[url_key]["last_error"] = last_error
+
+            os.makedirs(os.path.dirname(filepath) if os.path.dirname(filepath) else '.', exist_ok=True)
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
+
+            print(f"📤 Экспорт JSON: {len(data)} записей → {filepath}")
+            return len(data)
+        except Exception as e:
+            print(f"⚠️ Ошибка экспорта JSON: {e}")
+            return 0
+
+    def cleanup_geo_blocked(self, max_geo_records=50000):
+        """Удаляет самые старые GEO_BLOCKED-записи если их больше max_geo_records."""
+        count = self.conn.execute(
+            "SELECT COUNT(*) FROM notworkers WHERE last_error LIKE 'GEO_BLOCKED:%'"
+        ).fetchone()[0]
+
+        if count > max_geo_records:
+            excess = count - max_geo_records
+            cursor = self.conn.execute("""
+                DELETE FROM notworkers WHERE url_key IN (
+                    SELECT url_key FROM notworkers
+                    WHERE last_error LIKE 'GEO_BLOCKED:%'
+                    ORDER BY last_seen ASC
+                    LIMIT ?
+                )
+            """, (excess,))
+            self.conn.commit()
+            deleted = cursor.rowcount
+            print(f"🗑️ Очищено старых GEO_BLOCKED записей: {deleted} (лимит {max_geo_records})")
+            return deleted
+        return 0
