@@ -1,14 +1,4 @@
 vless://6f99ed2f-9879-40e3-b5b4-5590c60f8e4a@pl5.lckdwn.ru:443?type=grpc&security=reality&encryption=none&fp=chrome&pbk=g8IbVqG1g7ht5ckWvYgOxZ9CrStwZt8QYQmTEwIWsTU&sid=b5&sni=vk.ru&spx=%2F#🏳 Unknown 1
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=yandex.ru&path=&host=&alpn=http%25252F1.1#🇷🇺 Russia 1
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=max.ru&path=&host=&alpn=http%25252F1.1#🇷🇺 Russia 2
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=max.ru&path=&host=&alpn=http%252F1.1#🇷🇺 Russia 3
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=max.ru&path=&host=&alpn=http%25252525252F1.1#🇷🇺 Russia 4
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=max.ru&path=&host=&alpn=http%252525252F1.1#🇷🇺 Russia 5
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=yandex.ru&path=&host=&alpn=http%2525252F1.1#🇷🇺 Russia 6
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=yandex.ru&path=&host=&alpn=http%25252525252F1.1#🇷🇺 Russia 7
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=max.ru&path=&host=&alpn=http%2525252F1.1#🇷🇺 Russia 8
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=yandex.ru&path=&host=&alpn=http%2F1.1#🇷🇺 Russia 9
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=yandex.ru&path=&host=&alpn=http%252525252F1.1#🇷🇺 Russia 10
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=yandex.ru&path=&host=&alpn=http%252F1.1#🇷🇺 Russia 11
-vless://c5992ba6-8ecb-4a2f-b95f-548bf2793949@95.163.180.120:54443?type=tcp&security=tls&fp=chrome&sni=max.ru&path=&host=&alpn=http%2F1.1#🇷🇺 Russia 12
-vless://6d151e62-2da9-40dd-ac9f-5ae5b33ba8a5@telegram.private-networks-zk.com:443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&fp=chrome&pbk=-tePObR3oZwGAUOb5kqTYkNWl6rtUKl0RFuzuu06wgw&sid=50&sni=ads.x5.ru&source_name=etoneya_1&provider_id=etoneya_1#🏳 Unknown 2
+vless://110d7bad-5e17-4ce3-afd0-2cf2ebc71787@n05.zqwerty.ru:2053?security=reality&encryption=none&sni=music.yandex.ru&fp=chrome&pbk=aFsY-EZjSNTomlAFShKwQIQMJ5pHiZQXXJpWvcz8WkQ&sid=0858af97f4e7324d&type=tcp&path=%252f#🏳 Unknown 2
+vless://110d7bad-5e17-4ce3-afd0-2cf2ebc71787@n05.zqwerty.ru:2053?security=reality&encryption=none&sni=music.yandex.ru&fp=chrome&pbk=aFsY-EZjSNTomlAFShKwQIQMJ5pHiZQXXJpWvcz8WkQ&sid=0858af97f4e7324d&type=tcp&path=%2F#🏳 Unknown 3
+vless://6d151e62-2da9-40dd-ac9f-5ae5b33ba8a5@telegram.private-networks-zk.com:443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&fp=chrome&pbk=-tePObR3oZwGAUOb5kqTYkNWl6rtUKl0RFuzuu06wgw&sid=50&sni=ads.x5.ru&source_name=etoneya_1&provider_id=etoneya_1#🏳 Unknown 4
